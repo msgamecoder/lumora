@@ -11,4 +11,5 @@ router.post('/meka/login', loginUser);
 router.post('/meka/check-username', checkUsername);
 router.post('/meka/check-email', checkEmail);
 router.post('/meka/check-phone', checkPhone);
+router.post('/meka/recover', recoverUnverifiedWithPassword);
 module.exports = router;
