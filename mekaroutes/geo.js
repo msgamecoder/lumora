@@ -14,7 +14,7 @@ router.get('/country-code', async (req, res) => {
 
     res.json({ country: data.country_code });
   } catch (err) {
-    console.error("🌍 Country code fetch error:", err.message);
+    //console.error("🌍 Country code fetch error:", err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
