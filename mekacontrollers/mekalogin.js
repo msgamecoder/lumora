@@ -11,12 +11,17 @@ exports.loginUser = async (req, res) => {
       return res.status(400).json({ message: '🚨 Please enter your identifier and password.' });
     }
 
+    // 👇 Normalize username/email (but not phone)
+    const normalized = /^[0-9]+$/.test(identifier)
+      ? identifier
+      : identifier.toLowerCase();
+
     const query = `
       SELECT * FROM mekacore
       WHERE username = $1 OR email = $1 OR phone = $1
       LIMIT 1
     `;
-    const result = await pool.query(query, [identifier]);
+    const result = await pool.query(query, [normalized]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: '❌ User not found.' });
