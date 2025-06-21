@@ -44,7 +44,7 @@ exports.registerUser = async (req, res) => {
     if (!['one', 'two'].includes(world)) return res.status(400).json({ message: '🌍 Choose a valid world: one or two.' });
     if (!isValidPassword(password)) return res.status(400).json({ message: '🔐 Password must be 10 to 15 characters.' });
 
-    // Age check: Must be 12+
+    // Age check
     const dobDate = new Date(dob);
     const today = new Date();
     const age = today.getFullYear() - dobDate.getFullYear();
@@ -61,10 +61,13 @@ exports.registerUser = async (req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const normalizedUsername = username.toLowerCase();
+
     const newUser = new MekaTmp({
       firstName,
       lastName,
-      username,
+      username,              // Preserve styled version
+      normalizedUsername,    // Internal lookup
       email,
       phone,
       gender,
@@ -78,14 +81,13 @@ exports.registerUser = async (req, res) => {
       await newUser.save();
     } catch (err) {
       if (err.code === 11000) {
-        // ⚠️ Redirect back if duplicate entry
         return res.redirect('https://mxgamecoder.lovestoblog.com?error=duplicate');
       }
       throw err;
     }
 
     const baseUrl = process.env.LUMORA_DOMAIN || 'https://lumoraa.onrender.com';
-    const verifyUrl = `${baseUrl}/api/auth/verify/${token}`; // ✅ THIS
+    const verifyUrl = `${baseUrl}/api/auth/verify/${token}`;
     console.log('🔗 Verification URL:', verifyUrl);
     await sendVerificationEmail(email, verifyUrl, username, world);
 
