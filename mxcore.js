@@ -4,6 +4,7 @@ require('dotenv').config();
 const connectMongo = require('./mekaconfig/mekamongo');
 const pool = require('./mekaconfig/mekadb'); // PostgreSQL
 const authRoutes = require('./mekaroutes/mekaauth');
+const geoRoute = require('./mekaroutes/geo');
 const path = require('path');
 const cors = require('cors'); // ✅ Import CORS
 
@@ -23,6 +24,7 @@ app.get("/", (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/geo', geoRoute);
 
 // Start server
 const PORT = process.env.PORT || 5000;
