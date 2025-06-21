@@ -120,7 +120,6 @@ exports.verifyUser = async (req, res) => {
   }
 };
 
-// mekacontrollers/mekaauthController.js
 exports.recoverUnverifiedWithPassword = async (req, res) => {
   try {
     const { email, password } = req.body;
