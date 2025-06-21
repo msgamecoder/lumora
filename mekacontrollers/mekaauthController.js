@@ -69,7 +69,7 @@ exports.registerUser = async (req, res) => {
       throw err;
     }
 
-    const verifyUrl = `https://yourdomain.com/verify/${token}`;
+    const verifyUrl = `${process.env.LUMORA_DOMAIN}/verify/${token}`;
     console.log('🔗 Verification URL:', verifyUrl);
     await sendVerificationEmail(email, verifyUrl, username, world);
 
