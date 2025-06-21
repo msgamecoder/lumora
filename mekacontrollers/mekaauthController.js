@@ -44,6 +44,20 @@ exports.registerUser = async (req, res) => {
     if (!['one', 'two'].includes(world)) return res.status(400).json({ message: '🌍 Choose a valid world: one or two.' });
     if (!isValidPassword(password)) return res.status(400).json({ message: '🔐 Password must be 10 to 15 characters.' });
 
+    // Age check: Must be 12+
+    const dobDate = new Date(dob);
+    const today = new Date();
+    const age = today.getFullYear() - dobDate.getFullYear();
+    const hasBirthdayPassed = (
+      today.getMonth() > dobDate.getMonth() ||
+      (today.getMonth() === dobDate.getMonth() && today.getDate() >= dobDate.getDate())
+    );
+    const actualAge = hasBirthdayPassed ? age : age - 1;
+
+    if (actualAge < 12) {
+      return res.status(400).json({ message: '🚫 You must be at least 12 years old to join Lumora.' });
+    }
+
     const token = crypto.randomBytes(32).toString('hex');
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -64,12 +78,14 @@ exports.registerUser = async (req, res) => {
       await newUser.save();
     } catch (err) {
       if (err.code === 11000) {
-        return res.status(409).json({ message: '⚠️ Duplicate entry. Please refresh and try again.' });
+        // ⚠️ Redirect back if duplicate entry
+        return res.redirect('https://mxgamecoder.lovestoblog.com?error=duplicate');
       }
       throw err;
     }
 
-    const verifyUrl = `${process.env.LUMORA_DOMAIN}/verify/${token}`;
+    const baseUrl = process.env.LUMORA_DOMAIN || 'http://localhost:5500';
+    const verifyUrl = `${baseUrl}/verify/${token}`;
     console.log('🔗 Verification URL:', verifyUrl);
     await sendVerificationEmail(email, verifyUrl, username, world);
 
@@ -81,7 +97,6 @@ exports.registerUser = async (req, res) => {
     res.status(500).json({ message: '💥 Internal server error.' });
   }
 };
-
 
 exports.verifyUser = async (req, res) => {
   try {
