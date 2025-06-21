@@ -85,7 +85,7 @@ exports.registerUser = async (req, res) => {
     }
 
     const baseUrl = process.env.LUMORA_DOMAIN || 'https://lumoraa.onrender.com';
-    const verifyUrl = `${baseUrl}/mekaa/verify/${token}`;
+    const verifyUrl = `${baseUrl}/api/auth/verify/${token}`; // ✅ THIS
     console.log('🔗 Verification URL:', verifyUrl);
     await sendVerificationEmail(email, verifyUrl, username, world);
 
