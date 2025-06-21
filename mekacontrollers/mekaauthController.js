@@ -119,3 +119,42 @@ exports.verifyUser = async (req, res) => {
     return res.redirect("https://mxgamecoder.lovestoblog.com?error=server");
   }
 };
+
+// mekacontrollers/mekaauthController.js
+exports.recoverUnverifiedWithPassword = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: '❌ Email and password are required.' });
+    }
+
+    if (!/^[^\s@]+@(gmail|yahoo|outlook)\.com$/.test(email)) {
+      return res.status(400).json({ message: '📧 Invalid email format.' });
+    }
+
+    const user = await MekaTmp.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: '🚫 No unverified account found.' });
+    }
+
+    const bcrypt = require('bcryptjs');
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({ message: '🔐 Incorrect password.' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.verificationToken = token;
+    await user.save();
+
+    const baseUrl = process.env.LUMORA_DOMAIN || 'https://lumoraa.onrender.com';
+    const verifyUrl = `${baseUrl}/api/auth/verify/${token}`; // ✅ THIS
+    await sendVerificationEmail(email, verifyUrl, user.username, user.world);
+
+    return res.status(200).json({ message: '📬 Verification link re-sent. Check your email.' });
+  } catch (err) {
+    console.error("❌ Recovery error:", err);
+    return res.status(500).json({ message: '💥 Internal server error.' });
+  }
+};
