@@ -1,7 +1,7 @@
 // mekaroutes/auth.js
 const express = require('express');
 const router = express.Router();
-const { registerUser, verifyUser } = require('../mekacontrollers/mekaauthController');
+const { registerUser, verifyUser, recoverUnverifiedWithPassword } = require('../mekacontrollers/mekaauthController');
 const { loginUser } = require('../mekacontrollers/mekalogin');
 const { checkUsername, checkEmail, checkPhone } = require('../mekacontrollers/mekaauthCheck');
 
