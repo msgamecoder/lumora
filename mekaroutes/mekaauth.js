@@ -6,7 +6,7 @@ const { loginUser } = require('../mekacontrollers/mekalogin');
 const { checkUsername, checkEmail, checkPhone } = require('../mekacontrollers/mekaauthCheck');
 
 router.post('/meka/register', registerUser);
-router.get('/mekaa/verify/:token', verifyUser);
+router.get('/verify/:token', verifyUser);
 router.post('/meka/login', loginUser);
 router.post('/meka/check-username', checkUsername);
 router.post('/meka/check-email', checkEmail);
