@@ -6,12 +6,14 @@ exports.checkUsername = async (req, res) => {
   const { username } = req.body;
   if (!username) return res.status(400).json({ message: "❌ Username is required." });
 
-  try {
-    const tmp = await MekaTmp.findOne({ username });
-    const core = await MekaCore.checkUsernameExists?.(username);
+  const normalized = username.toLowerCase();
 
-    if (tmp) console.log("🔍 Found username in MekaTmp (MongoDB):", username);
-    if (core) console.log("🔍 Found username in MekaCore (PostgreSQL):", username);
+  try {
+    const tmp = await MekaTmp.findOne({ normalizedUsername: normalized });
+    const core = await MekaCore.checkUsernameExists?.(normalized);
+
+    if (tmp) console.log("🔍 Found username in MekaTmp (MongoDB):", normalized);
+    if (core) console.log("🔍 Found username in MekaCore (PostgreSQL):", normalized);
 
     if (tmp || core) {
       return res.status(400).json({ message: "🧍 Username already taken." });
