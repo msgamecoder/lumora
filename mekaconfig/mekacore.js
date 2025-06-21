@@ -15,38 +15,56 @@ async function insertCoreUser(user) {
   const idOne = 'MX-' + Math.floor(100000 + Math.random() * 900000);
   const idTwo = crypto.randomUUID();
 
-const query = `
-  INSERT INTO mekacore (
-    id_one, id_two, first_name, last_name,
-    username, email, phone, password, profile_image,
-    gender, dob, world, created_at
-  ) VALUES (
-    $1, $2, $3, $4,
-    $5, $6, $7, $8, $9,
-    $10, $11, $12, NOW()
-  )
-  RETURNING id_one
-`;
+  const query = `
+    INSERT INTO mekacore (
+      id_one, id_two, first_name, last_name,
+      username, email, phone, password, profile_image,
+      gender, dob, world, created_at
+    ) VALUES (
+      $1, $2, $3, $4,
+      $5, $6, $7, $8, $9,
+      $10, $11, $12, NOW()
+    )
+    RETURNING id_one
+  `;
 
-const values = [
-  idOne,
-  idTwo,
-  user.firstName,
-  user.lastName,
-  user.username,
-  user.email,
-  user.phone,
-  user.password, // ✅ send hashed password
-  user.profileImage,
-  user.gender,
-  user.dob,
-  user.world
-];
+  const values = [
+    idOne,
+    idTwo,
+    user.firstName,
+    user.lastName,
+    user.username,
+    user.email,
+    user.phone,
+    user.password,
+    user.profileImage,
+    user.gender,
+    user.dob,
+    user.world
+  ];
 
   const result = await pool.query(query, values);
   return result.rows[0];
 }
 
+async function checkUsernameExists(username) {
+  const res = await pool.query('SELECT 1 FROM mekacore WHERE username = $1', [username]);
+  return res.rows.length > 0;
+}
+
+async function checkEmailExists(email) {
+  const res = await pool.query('SELECT 1 FROM mekacore WHERE email = $1', [email]);
+  return res.rows.length > 0;
+}
+
+async function checkPhoneExists(phone) {
+  const res = await pool.query('SELECT 1 FROM mekacore WHERE phone = $1', [phone]);
+  return res.rows.length > 0;
+}
+
 module.exports = {
-  insertCoreUser
+  insertCoreUser,
+  checkUsernameExists,
+  checkEmailExists,
+  checkPhoneExists
 };
