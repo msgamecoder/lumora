@@ -105,18 +105,17 @@ exports.verifyUser = async (req, res) => {
     const tmpUser = await MekaTmp.findOne({ verificationToken: token });
 
     if (!tmpUser) {
-      return res.status(400).json({ message: '⛔ Invalid or expired verification link.' });
+      // Invalid or expired token – redirect user safely
+      return res.redirect("https://mxgamecoder.lovestoblog.com?error=invalid-link");
     }
 
     const savedUser = await MekaCore.insertCoreUser(tmpUser);
     await tmpUser.deleteOne();
 
-    res.status(200).json({
-      message: '✅ Account verified successfully!',
-      id: savedUser.id_one
-    });
+    // Optional: redirect to a frontend page with a success message
+    return res.redirect("https://mxgamecoder.lovestoblog.com/very.html?verified=1");
   } catch (err) {
-    console.error('Verification Error:', err);
-    res.status(500).json({ message: '🔥 Verification failed due to server error.' });
+    console.error("🔴 Verification Error:", err);
+    return res.redirect("https://mxgamecoder.lovestoblog.com?error=server");
   }
 };
