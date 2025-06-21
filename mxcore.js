@@ -10,7 +10,7 @@ const cors = require('cors'); // ✅ Import CORS
 const app = express();
 
 app.use(cors({
-  origin: ['http://127.0.0.1:5500', 'http://localhost:5500', 'https://ipapi.co/json'], // ✅ Allow your HTML dev origin
+  origin: ['http://127.0.0.1:5500', 'http://localhost:5500'], // ✅ Allow your HTML dev origin
   methods: ['GET', 'POST'],
   credentials: false
 }));
