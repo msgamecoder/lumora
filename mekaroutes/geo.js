@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const fetch = require('node-fetch');
+const axios = require('axios'); // ✅ Replace fetch with axios
 
 router.get('/country-code', async (req, res) => {
   try {
     const ipapiURL = 'https://ipapi.co/json/';
-    const response = await fetch(ipapiURL);
-    const data = await response.json();
+    const response = await axios.get(ipapiURL);
+    const data = response.data;
 
     if (!data || !data.country_code) {
       return res.status(500).json({ error: 'Failed to get country code' });
