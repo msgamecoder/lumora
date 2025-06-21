@@ -28,3 +28,5 @@ const sendVerificationEmail = async (to, url, username, world) => {
 
   await transporter.sendMail(mailOptions);
 };
+
+module.exports = sendVerificationEmail;
