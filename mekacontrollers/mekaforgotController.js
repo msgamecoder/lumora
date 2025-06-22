@@ -1,7 +1,7 @@
 // mekacontrollers/mekaforgotController.js
 const crypto = require("crypto");
 const pool = require("../mekaconfig/mekadb");
-const sendVerificationEmail = require("../mekautils/mekasendMail");
+const sendLumoraMail = require("../mekautils/mekasendMail");
 const bcrypt = require("bcryptjs");
 
 // POST /api/auth/forgot
