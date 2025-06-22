@@ -1,7 +1,7 @@
-//mekacontrollers/mekalogin.js
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const pool = require('../mekaconfig/mekadb'); // PostgreSQL pool
+const sendLumoraMail = require('../mekautils/mekasendMail'); // ✅ Add this
 
 exports.loginUser = async (req, res) => {
   try {
@@ -39,6 +39,17 @@ exports.loginUser = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
+
+    // ✅ Get login time and IP
+    const loginTime = new Date().toUTCString();
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+
+    // ✅ Send login notification
+    await sendLumoraMail(user.email, null, "login", {
+      username: user.username,
+      time: loginTime,
+      ip
+    });
 
     res.status(200).json({
       message: '✅ Login successful!',
