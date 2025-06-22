@@ -28,7 +28,7 @@ exports.sendResetLink = async (req, res) => {
     const baseUrl = process.env.LUMORA_DOMAIN || "https://lumoraa.onrender.com";
     const resetLink = `${baseUrl}/reset.html?token=${token}&email=${encodeURIComponent(email)}`;
 
-    await sendVerificationEmail(email, resetLink, "Reset your password", "Password Reset");
+    await sendLumoraMail(email, resetLink, "forgot");
 
     res.status(200).json({ message: "📬 Reset link sent. Check your email." });
   } catch (err) {
@@ -62,6 +62,7 @@ exports.resetPassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await pool.query("UPDATE mekacore SET password = $1 WHERE email = $2", [hashedPassword, email]);
     await pool.query("DELETE FROM mekapasswordresets WHERE email = $1", [email]);
+    await sendLumoraMail(email, null, "resetSuccess");
 
     res.status(200).json({ message: "✅ Password updated successfully." });
   } catch (err) {
