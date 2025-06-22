@@ -89,7 +89,9 @@ exports.registerUser = async (req, res) => {
     const baseUrl = process.env.LUMORA_DOMAIN || 'https://lumoraa.onrender.com';
     const verifyUrl = `${baseUrl}/api/auth/verify/${token}`;
     console.log('🔗 Verification URL:', verifyUrl);
-    await sendVerificationEmail(email, verifyUrl, username, world);
+    await sendLumoraMail(email, verifyLink, "register", {
+  username: username, world: world
+});
 
     res.status(201).json({
       message: '🎉 Registration successful! Check your email to verify.'
