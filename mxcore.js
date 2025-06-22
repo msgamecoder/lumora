@@ -22,7 +22,7 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "status.html"));
 });
-
+app.use(express.static("public")); // or "client", "frontend", etc.
 app.use('/api/auth', authRoutes);
 app.use('/api/geo', geoRoute);
 
