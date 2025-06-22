@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const MekaTmp = require('../mekamodels/mekatmp');
 const MekaCore = require('../mekaconfig/mekacore');
 const bcrypt = require('bcryptjs');
-const sendVerificationEmail = require('../mekautils/mekasendMail');
+const sendLumoraMail = require('../mekautils/mekasendMail');
 
 function isValidName(name) {
   return /^[a-zA-Z]{1,33}$/.test(name);
@@ -89,8 +89,9 @@ exports.registerUser = async (req, res) => {
     const baseUrl = process.env.LUMORA_DOMAIN || 'https://lumoraa.onrender.com';
     const verifyUrl = `${baseUrl}/api/auth/verify/${token}`;
     console.log('🔗 Verification URL:', verifyUrl);
-    await sendLumoraMail(email, verifyLink, "register", {
-  username: username, world: world
+    await sendLumoraMail(email, verifyUrl, "register", {
+    username: user.username,
+    world: user.world
 });
 
     res.status(201).json({
@@ -153,7 +154,10 @@ exports.recoverUnverifiedWithPassword = async (req, res) => {
 
     const baseUrl = process.env.LUMORA_DOMAIN || 'https://lumoraa.onrender.com';
     const verifyUrl = `${baseUrl}/api/auth/verify/${token}`; // ✅ THIS
-    await sendVerificationEmail(email, verifyUrl, user.username, user.world);
+    await sendLumoraMail(email, verifyUrl, "register", {
+  username: user.username,
+  world: user.world
+});
 
     return res.status(200).json({ message: '📬 Verification link re-sent. Check your email.' });
   } catch (err) {
