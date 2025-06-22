@@ -1,0 +1,222 @@
+:root {
+  font-size: 16px;
+}
+
+@media (max-width: 480px) {
+  :root {
+    font-size: 14px;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #0f0f0f;
+  font-family: 'Segoe UI', sans-serif;
+  color: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.loginStage {
+  background: #111;
+  padding: 2rem 1.5rem;
+  border-radius: 14px;
+  box-shadow: 0 0 30px #4a00e0;
+  text-align: center;
+  width: 100%;
+  max-width: 420px;
+  min-width: 290px; /* 👈 Prevent collapse on super small devices */
+  transition: all 0.4s ease;
+}
+
+.loginStage h2 {
+  margin-bottom: 1.5rem;
+  color: #8e2de2;
+  font-size: 1.5rem;
+}
+
+.inputWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 1.3rem;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="date"],
+select {
+  width: 100%;
+  padding: 0.85rem;
+  background: #1a1a1a;
+  color: #eee;
+  border: 1px solid #333;
+  border-radius: 10px;
+  font-size: clamp(0.9rem, 1vw + 0.4rem, 1.05rem);
+  outline: none;
+  transition: border 0.3s ease;
+}
+
+input:focus,
+select:focus {
+  border: 1px solid #8e2de2;
+}
+
+select {
+  appearance: none;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23ccc" d="M2 0L0 2h4z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 10px;
+  padding-right: 2.5rem;
+}
+
+.btnAction {
+  padding: 0.75rem 1.4rem;
+  background: linear-gradient(135deg, #8e2de2, #4a00e0);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: clamp(0.9rem, 1vw + 0.3rem, 1.1rem);
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 160px;
+  margin: 0 auto;
+}
+
+.btnAction:hover {
+  transform: scale(1.05);
+}
+
+.passwordBox {
+  position: relative;
+  width: 100%;
+}
+
+.passwordBox input {
+  width: 100%;
+  padding-right: 2.5rem; /* give space for the eye */
+}
+
+.toggleShow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #aaa;
+  font-size: 1.1rem;
+}
+
+.flash {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.9rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  z-index: 1000;
+  background: #2c2c2c;
+  border: 1px solid #444;
+  color: #eee;
+  box-shadow: 0 0 10px #8e2de2;
+  transition: all 0.4s ease;
+}
+
+.flash.success {
+  background: #1e4620;
+  border-color: #3cb043;
+  color: #b6fcb6;
+}
+
+.flash.error {
+  background: #462020;
+  border-color: #fc3c3c;
+  color: #ffc5c5;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Loader remains the same */
+.lumora-loader {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(145deg, #001111, #000000);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.loader-ring {
+  text-align: center;
+  animation: fadeIn 1.5s ease forwards;
+  position: relative;
+}
+
+.logo {
+  font-size: 4rem;
+  color: #00ffe0;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.loader-text {
+  color: #bffeff;
+  font-size: 1.3rem;
+  margin-top: 1rem;
+  text-shadow: 0 0 5px #00ffff77;
+  animation: slideUp 2.5s ease-out;
+}
+
+.glow {
+  position: absolute;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #00ffe033 10%, #00ffee00 70%);
+  animation: rotateGlow 8s linear infinite;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 12px #00fff544, 0 0 24px #00ffee33, 0 0 32px #00ffcc22;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.75; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rotateGlow {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
