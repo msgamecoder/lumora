@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🔁 Reset Password | Lumora</title>
+  <link rel="stylesheet" href="lumoracss/login.css" />
+</head>
+<body>
+  <div id="flashPopup" class="flash hidden"></div>
+
+  <div class="loginStage">
+    <h2>🔁 Reset Password</h2>
+
+    <div class="inputWrap passwordBox">
+      <input type="password" id="newPass" placeholder="New password..." />
+    </div>
+
+    <div class="inputWrap passwordBox">
+      <input type="password" id="confirmPass" placeholder="Confirm password..." />
+    </div>
+
+    <button class="btnAction" id="resetBtn">Reset Password</button>
+  </div>
+
+  <script src="lumorajs/lumora.js"></script>
+  <script>
+    const flashPopup = document.getElementById("flashPopup");
+    const resetBtn = document.getElementById("resetBtn");
+
+    function showFlash(msg) {
+      flashPopup.textContent = msg;
+      flashPopup.classList.remove("hidden");
+      setTimeout(() => flashPopup.classList.add("hidden"), 5000);
+    }
+
+    resetBtn.addEventListener("click", async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get("token");
+
+      if (!token) return showFlash("❌ Invalid or missing token.");
+
+      const newPass = document.getElementById("newPass").value.trim();
+      const confirmPass = document.getElementById("confirmPass").value.trim();
+
+      if (newPass !== confirmPass) return showFlash("🔒 Passwords do not match.");
+      if (newPass.length < 10 || newPass.length > 15) {
+        return showFlash("🔐 Password must be between 10 and 15 characters.");
+      }
+
+      resetBtn.disabled = true;
+      resetBtn.textContent = "Resetting...";
+
+      const res = await lumora(`api/auth/meka/reset/${token}`, { password: newPass });
+
+      if (res.ok) {
+        showFlash("✅ Password reset! Redirecting...");
+        setTimeout(() => window.location.href = "index.html", 2000);
+      } else {
+        showFlash(res.message || "❌ Failed to reset password.");
+        resetBtn.disabled = false;
+        resetBtn.textContent = "Reset Password";
+      }
+    });
+  </script>
+</body>
+</html>
