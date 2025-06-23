@@ -14,6 +14,6 @@ router.post('/meka/check-email', checkEmail);
 router.post('/meka/check-phone', checkPhone);
 router.post('/meka/recover', recoverUnverifiedWithPassword);
 // Forgot password routes
-router.post('/meka/forgot', forgotController.sendResetLink);
+router.post('/meka/forgot', forgotController.sendResetCode);
 router.post('/meka/reset', forgotController.resetPassword);
 module.exports = router;
