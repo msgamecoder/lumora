@@ -1,5 +1,4 @@
 // mekacontrollers/mekaforgotController.js
-const crypto = require("crypto");
 const pool = require("../mekaconfig/mekadb");
 const sendLumoraMail = require("../mekautils/mekasendMail");
 const bcrypt = require("bcryptjs");
@@ -55,8 +54,16 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ message: "❌ Invalid or expired code." });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await pool.query("UPDATE mekacore SET password = $1 WHERE email = $2", [hashedPassword, email]);
+    const current = await pool.query("SELECT password FROM mekacore WHERE email = $1", [email]);
+
+const isSame = await bcrypt.compare(newPassword, current.rows[0].password);
+if (isSame) {
+  return res.status(400).json({ message: "⚠️ New password can’t be the same as the old one." });
+}
+
+const hashedPassword = await bcrypt.hash(newPassword, 10);
+await pool.query("UPDATE mekacore SET password = $1 WHERE email = $2", [hashedPassword, email]);
+
     await pool.query("DELETE FROM mekapasswordresets WHERE email = $1", [email]);
     await sendLumoraMail(email, null, "resetSuccess");
 
