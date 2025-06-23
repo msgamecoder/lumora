@@ -5,6 +5,7 @@ const { registerUser, verifyUser, recoverUnverifiedWithPassword } = require('../
 const { loginUser } = require('../mekacontrollers/mekalogin');
 const { checkUsername, checkEmail, checkPhone } = require('../mekacontrollers/mekaauthCheck');
 const forgotController = require('../mekacontrollers/mekaforgotController');
+const { checkTokenValidity } = require('../mekacontrollers/mekacheckToken');
 
 router.post('/meka/register', registerUser);
 router.get('/verify/:token', verifyUser);
@@ -16,4 +17,5 @@ router.post('/meka/recover', recoverUnverifiedWithPassword);
 // Forgot password routes
 router.post('/meka/forgot', forgotController.sendResetCode);
 router.post('/meka/reset', forgotController.resetPassword);
+router.post('/meka/check-token', checkTokenValidity);
 module.exports = router;
