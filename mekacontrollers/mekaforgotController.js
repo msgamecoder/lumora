@@ -5,7 +5,7 @@ const sendLumoraMail = require("../mekautils/mekasendMail");
 const bcrypt = require("bcryptjs");
 
 // POST /api/auth/forgot
-exports.sendResetLink = async (req, res) => {
+exports.sendResetCode = async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: "📧 Email is required." });
 
@@ -15,22 +15,18 @@ exports.sendResetLink = async (req, res) => {
       return res.status(404).json({ message: "❌ No account found with this email." });
     }
 
-    const token = crypto.randomBytes(32).toString("hex");
+    const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
     const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
 
-    // Save token to DB
     await pool.query(`
       INSERT INTO mekapasswordresets (email, token, expires_at)
       VALUES ($1, $2, $3)
       ON CONFLICT (email) DO UPDATE SET token = EXCLUDED.token, expires_at = EXCLUDED.expires_at
-    `, [email, token, expires]);
+    `, [email, code, expires]);
 
-    const baseUrl = process.env.LUMORA_DOMAIN || "https://lumoraa.onrender.com";
-    const resetLink = `${baseUrl}/reset.html?token=${token}&email=${encodeURIComponent(email)}`;
+    await sendLumoraMail(email, code, "forgot");
 
-    await sendLumoraMail(email, resetLink, "forgot");
-
-    res.status(200).json({ message: "📬 Reset link sent. Check your email." });
+    res.status(200).json({ message: "📬 Reset code sent. Check your email." });
   } catch (err) {
     console.error("❌ Forgot password error:", err);
     res.status(500).json({ message: "💥 Internal server error." });
@@ -39,9 +35,9 @@ exports.sendResetLink = async (req, res) => {
 
 // POST /api/auth/reset
 exports.resetPassword = async (req, res) => {
-  const { email, token, newPassword } = req.body;
+  const { email, code, newPassword } = req.body;
 
-  if (!email || !token || !newPassword) {
+  if (!email || !code || !newPassword) {
     return res.status(400).json({ message: "⚠️ All fields are required." });
   }
 
@@ -52,11 +48,11 @@ exports.resetPassword = async (req, res) => {
   try {
     const result = await pool.query(
       "SELECT * FROM mekapasswordresets WHERE email = $1 AND token = $2 AND expires_at > NOW()",
-      [email, token]
+      [email, code]
     );
 
     if (result.rows.length === 0) {
-      return res.status(400).json({ message: "❌ Invalid or expired token." });
+      return res.status(400).json({ message: "❌ Invalid or expired code." });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
