@@ -11,12 +11,13 @@ exports.checkTokenValidity = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    //console.log("🔎 Comparing decoded.id:", decoded.id, "with userId:", userId);
 
     if (decoded.id !== userId) {
       return res.status(403).json({ message: "⛔ Invalid session." });
     }
 
-    const result = await pool.query("SELECT * FROM mekacore WHERE id = $1", [userId]);
+    const result = await pool.query("SELECT * FROM mekacore WHERE id_two = $1", [userId]);
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "👤 User not found." });
     }
