@@ -34,19 +34,19 @@ const sendLumoraMail = async (to, payload, type, options = {}) => {
       `;
       break;
 
-    case "forgot":
-      subject = "Reset Your Lumora Password";
-      html = `
-        <div style="font-family: sans-serif; padding: 1rem;">
-          <p>Hi there,</p>
-          <p>We received a request to reset your Lumora password.</p>
-          <p>Click the button below to reset it. This link expires in 15 minutes:</p>
-          <p><a href="${payload}" style="padding: 10px 16px; background: #ff5252; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a></p>
-          <p>If you didn’t request this, you can ignore this email.</p>
-          <p style="font-size: 0.8rem; color: #777;">🔐 Lumora | Secure by MΞKΛ</p>
-        </div>
-      `;
-      break;
+case "forgot":
+  subject = "🔑 Your Lumora Reset Code";
+  html = `
+    <div style="font-family: sans-serif; padding: 1rem;">
+      <p>Hi there,</p>
+      <p>We received a request to reset your Lumora password.</p>
+      <p>Your reset code is:</p>
+      <h2 style="letter-spacing: 4px; color: #ff5252;">${payload}</h2>
+      <p>This code will expire in 15 minutes. If you didn’t request this, you can ignore this email.</p>
+      <p style="font-size: 0.8rem; color: #777;">🔐 Lumora | MΞKΛ Core Security</p>
+    </div>
+  `;
+  break;
 
     case "resetSuccess":
       subject = "✅ Your Lumora Password Was Changed";
