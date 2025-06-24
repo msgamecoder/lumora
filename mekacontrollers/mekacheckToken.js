@@ -11,7 +11,7 @@ exports.checkTokenValidity = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    //console.log("🔎 Comparing decoded.id:", decoded.id, "with userId:", userId);
+    console.log("🔎 Comparing decoded.id:", decoded.id, "with userId:", userId);
 
     if (decoded.id !== userId) {
       return res.status(403).json({ message: "⛔ Invalid session." });
