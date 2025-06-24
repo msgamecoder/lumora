@@ -11,15 +11,25 @@ const cookieParser = require("cookie-parser");
 
 const app = express();
 
+const allowedOrigins = [
+  "capacitor://localhost", // For Capacitor mobile app
+  "file://",               // For Cordova or raw APK
+  "http://localhost:5500", // For local dev
+  "http://127.0.0.1:5500", 
+  "https://mxgamecoder.lovestoblog.com", // Your frontend if hosted there
+  "https://lumora-usrb.onrender.com",    // If your frontend ever runs from here
+];
+
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or local file://)
-    if (!origin) return callback(null, true);
-    callback(null, true); // allow everything for now
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("❌ Not allowed by CORS"), false);
   },
-  methods: ['GET', 'POST'],
   credentials: true
 }));
+
 
 app.use(express.json());
 
