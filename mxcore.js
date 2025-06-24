@@ -12,13 +12,11 @@ const cookieParser = require("cookie-parser");
 const app = express();
 
 app.use(cors({
-  origin: [
-    'http://127.0.0.1:5500',
-    'http://localhost:5500',
-    'capacitor://localhost',
-    'http://localhost',
-    'https://mxgamecoder.lovestoblog.com'
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or local file://)
+    if (!origin) return callback(null, true);
+    callback(null, true); // allow everything for now
+  },
   methods: ['GET', 'POST'],
   credentials: true
 }));
