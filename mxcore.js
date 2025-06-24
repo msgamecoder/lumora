@@ -13,14 +13,16 @@ const app = express();
 
 app.use(cors({
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      "capacitor://localhost",
-      "file://",
-      "http://localhost:5500",
-      "http://127.0.0.1:5500",
-      "https://mxgamecoder.lovestoblog.com",
-      "https://lumora-usrb.onrender.com"
-    ];
+const allowedOrigins = [
+  "capacitor://localhost",
+  "file://",
+  "http://localhost:5500",
+  "http://127.0.0.1:5500",
+  "http://localhost",
+  "https://localhost", // ✅ NEW: This is what caused the CORS block!
+  "https://mxgamecoder.lovestoblog.com",
+  "https://lumora-usrb.onrender.com"
+];
 
     const isMobileApp = !origin || origin === "null" || origin.startsWith("file://") || origin.startsWith("capacitor://");
 
