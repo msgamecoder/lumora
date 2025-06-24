@@ -11,22 +11,20 @@ const cookieParser = require("cookie-parser");
 
 const app = express();
 
-const allowedOrigins = [
-  "capacitor://localhost",
-  "file://",
-  "http://localhost:5500",
-  "http://127.0.0.1:5500",
-  "https://mxgamecoder.lovestoblog.com",
-  "http://localhost:63342",
-  "https://lumora-usrb.onrender.com"
-];
-
 app.use(cors({
   origin: function (origin, callback) {
-    // ✅ Allow mobile apps, even when origin is null
-    const isApp = !origin || origin.startsWith("file://") || origin.startsWith("capacitor://");
+    const allowedOrigins = [
+      "capacitor://localhost",
+      "file://",
+      "http://localhost:5500",
+      "http://127.0.0.1:5500",
+      "https://mxgamecoder.lovestoblog.com",
+      "https://lumora-usrb.onrender.com"
+    ];
 
-    if (isApp || allowedOrigins.includes(origin)) {
+    const isMobileApp = !origin || origin === "null" || origin.startsWith("file://") || origin.startsWith("capacitor://");
+
+    if (isMobileApp || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
@@ -35,7 +33,6 @@ app.use(cors({
   },
   credentials: true
 }));
-
 
 app.use(express.json());
 
