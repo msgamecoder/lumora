@@ -7,13 +7,20 @@ const authRoutes = require('./mekaroutes/mekaauth');
 const geoRoute = require('./mekaroutes/geo');
 const path = require('path');
 const cors = require('cors'); // ✅ Import CORS
+const cookieParser = require("cookie-parser");
 
 const app = express();
 
 app.use(cors({
-  origin: ['http://127.0.0.1:5500', 'http://localhost:5500'], // ✅ Allow your HTML dev origin
+  origin: [
+    'http://127.0.0.1:5500',
+    'http://localhost:5500',
+    'capacitor://localhost',
+    'http://localhost',
+    'https://mxgamecoder.lovestoblog.com'
+  ],
   methods: ['GET', 'POST'],
-  credentials: false
+  credentials: true
 }));
 
 app.use(express.json());
@@ -22,6 +29,7 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "status.html"));
 });
+app.use(cookieParser());
 app.use(express.static("public")); // or "client", "frontend", etc.
 app.use('/api/auth', authRoutes);
 app.use('/api/geo', geoRoute);
