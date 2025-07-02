@@ -20,7 +20,7 @@ const sendLumoraMail = async (to, payload, type, options = {}) => {
   let html = "";
 
   switch (type) {
-case "signupcode":
+case "register":
   subject = "🧾 Your Lumora Signup Code";
   html = `
     <div style="font-family: sans-serif; padding: 1rem;">
