@@ -20,19 +20,19 @@ const sendLumoraMail = async (to, payload, type, options = {}) => {
   let html = "";
 
   switch (type) {
-    case "register":
-      subject = "Lumora Email Verification";
-      html = `
-        <div style="font-family: sans-serif; padding: 1rem;">
-          <p>Hi <b>@${options.username}</b>,</p>
-          <p>Welcome to Lumora (${options.world === 'one' ? 'World One 🌍' : 'World Two 🌎'})</p>
-          <p>Click below to verify your account:</p>
-          <p><a href="${payload}" style="padding: 10px 16px; background: #8e2de2; color: #fff; text-decoration: none; border-radius: 5px;">Verify Account</a></p>
-          <p>If you didn’t register, ignore this email.</p>
-          <p style="font-size: 0.8rem; color: #777;">🔗 Lumora | MΞKΛ Core v4</p>
-        </div>
-      `;
-      break;
+case "signupcode":
+  subject = "🧾 Your Lumora Signup Code";
+  html = `
+    <div style="font-family: sans-serif; padding: 1rem;">
+      <p>Hi <b>@${options.username}</b>,</p>
+      <p>Thanks for signing up for Lumora (${options.world === 'one' ? 'World One 🌍' : 'World Two 🌎'})</p>
+      <p>Your signup verification code is:</p>
+      <h2 style="letter-spacing: 4px; color: #8e2de2;">${payload}</h2>
+      <p>This code expires soon. Enter it in the app to activate your account.</p>
+      <p style="font-size: 0.8rem; color: #777;">🔐 Lumora | MΞKΛ Core Onboarding</p>
+    </div>
+  `;
+  break;
 
 case "forgot":
   subject = "🔑 Your Lumora Reset Code";
