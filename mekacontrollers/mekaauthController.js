@@ -1,8 +1,7 @@
 //mekacontrollers/mekaauthController.js
-const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const MekaTmp = require('../mekamodels/mekatmp');
 const MekaCore = require('../mekaconfig/mekacore');
-const bcrypt = require('bcryptjs');
 const sendLumoraMail = require('../mekautils/mekasendMail');
 
 function isValidName(name) {
@@ -25,6 +24,11 @@ function isValidPassword(password) {
   return typeof password === 'string' && password.length >= 10 && password.length <= 15;
 }
 
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// 🧾 REGISTER USER
 exports.registerUser = async (req, res) => {
   try {
     const {
@@ -48,83 +52,85 @@ exports.registerUser = async (req, res) => {
     const dobDate = new Date(dob);
     const today = new Date();
     const age = today.getFullYear() - dobDate.getFullYear();
-    const hasBirthdayPassed = (
-      today.getMonth() > dobDate.getMonth() ||
-      (today.getMonth() === dobDate.getMonth() && today.getDate() >= dobDate.getDate())
-    );
+    const hasBirthdayPassed = today.getMonth() > dobDate.getMonth() ||
+      (today.getMonth() === dobDate.getMonth() && today.getDate() >= dobDate.getDate());
     const actualAge = hasBirthdayPassed ? age : age - 1;
 
     if (actualAge < 12) {
       return res.status(400).json({ message: '🚫 You must be at least 12 years old to join Lumora.' });
     }
 
-    const token = crypto.randomBytes(32).toString('hex');
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const normalizedUsername = username.toLowerCase();
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const code = generateCode();
 
     const newUser = new MekaTmp({
       firstName,
       lastName,
-      username,              // Preserve styled version
-      normalizedUsername,    // Internal lookup
+      username,
+      normalizedUsername,
       email,
       phone,
       gender,
       dob,
       world,
       password: hashedPassword,
-      verificationToken: token
+      verificationCode: code,
+      verificationCodeExpires: new Date(Date.now() + 15 * 60 * 1000) // 15 mins
     });
 
     try {
       await newUser.save();
     } catch (err) {
       if (err.code === 11000) {
-        return res.redirect('https://mxgamecoder.lovestoblog.com?error=duplicate');
+        return res.status(409).json({ message: '🚫 Duplicate email, username, or phone.' });
       }
       throw err;
     }
 
-    const baseUrl = process.env.LUMORA_DOMAIN || 'https://lumoraa.onrender.com';
-    const verifyUrl = `${baseUrl}/api/auth/verify/${token}`;
-    console.log('🔗 Verification URL:', verifyUrl);
-    await sendLumoraMail(email, verifyUrl, "register", {
-    username: user.username,
-    world: user.world
-});
+    await sendLumoraMail(email, code, "register", {
+      username,
+      world
+    });
 
-    res.status(201).json({
-      message: '🎉 Registration successful! Check your email to verify.'
+    return res.status(201).json({
+      message: '📩 Code sent to email. Enter to verify your account.'
     });
   } catch (err) {
-    console.error('❌ Registration Error:', err);
+    console.error("❌ Registration Error:", err);
     res.status(500).json({ message: '💥 Internal server error.' });
   }
 };
 
+// ✅ VERIFY USER (WITH CODE)
 exports.verifyUser = async (req, res) => {
   try {
-    const token = req.params.token;
+    const { email, code } = req.body;
 
-    const tmpUser = await MekaTmp.findOne({ verificationToken: token });
-
-    if (!tmpUser) {
-      // Invalid or expired token – redirect user safely
-      return res.redirect("https://mxgamecoder.lovestoblog.com?error=invalid-link");
+    if (!email || !code) {
+      return res.status(400).json({ message: '📧 Email and 6-digit code required.' });
     }
 
-    const savedUser = await MekaCore.insertCoreUser(tmpUser);
-    await tmpUser.deleteOne();
+    const user = await MekaTmp.findOne({ email });
+    if (!user || user.verificationCode !== code) {
+      return res.status(400).json({ message: '❌ Invalid code or user not found.' });
+    }
 
-    // Optional: redirect to a frontend page with a success message
-    return res.redirect("https://mxgamecoder.lovestoblog.com/very.html?verified=1");
+    if (user.verificationCodeExpires < new Date()) {
+      return res.status(400).json({ message: '⏰ Code expired. Try again.' });
+    }
+
+    const savedUser = await MekaCore.insertCoreUser(user);
+    await user.deleteOne();
+
+    return res.status(200).json({ message: '✅ Account verified successfully.' });
   } catch (err) {
     console.error("🔴 Verification Error:", err);
-    return res.redirect("https://mxgamecoder.lovestoblog.com?error=server");
+    return res.status(500).json({ message: '💥 Internal server error.' });
   }
 };
 
+// ♻️ RESEND VERIFICATION (UNVERIFIED USERS)
 exports.recoverUnverifiedWithPassword = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -142,24 +148,22 @@ exports.recoverUnverifiedWithPassword = async (req, res) => {
       return res.status(404).json({ message: '🚫 No unverified account found.' });
     }
 
-    const bcrypt = require('bcryptjs');
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
       return res.status(401).json({ message: '🔐 Incorrect password.' });
     }
 
-    const token = crypto.randomBytes(32).toString('hex');
-    user.verificationToken = token;
+    const code = generateCode();
+    user.verificationCode = code;
+    user.verificationCodeExpires = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
 
-    const baseUrl = process.env.LUMORA_DOMAIN || 'https://lumoraa.onrender.com';
-    const verifyUrl = `${baseUrl}/api/auth/verify/${token}`; // ✅ THIS
-    await sendLumoraMail(email, verifyUrl, "register", {
-  username: user.username,
-  world: user.world
-});
+    await sendLumoraMail(email, code, "register", {
+      username: user.username,
+      world: user.world
+    });
 
-    return res.status(200).json({ message: '📬 Verification link re-sent. Check your email.' });
+    return res.status(200).json({ message: '📬 New verification code sent.' });
   } catch (err) {
     console.error("❌ Recovery error:", err);
     return res.status(500).json({ message: '💥 Internal server error.' });
