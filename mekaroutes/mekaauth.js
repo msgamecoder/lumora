@@ -8,7 +8,7 @@ const forgotController = require('../mekacontrollers/mekaforgotController');
 const { checkTokenValidity } = require('../mekacontrollers/mekacheckToken');
 
 router.post('/meka/register', registerUser);
-router.get('/verify/:token', verifyUser);
+router.post('/meka/verify', verifyUser);
 router.post('/meka/login', loginUser);
 router.post('/meka/check-username', checkUsername);
 router.post('/meka/check-email', checkEmail);
