@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const mekatmpSchema = new mongoose.Schema({
   firstName: { type: String, required: true, trim: true },
   lastName:  { type: String, required: true, trim: true },
-  username:  { type: String, required: true, unique: true, trim: true }, // Preserves style (ΔMΞCØDΞR)
-  normalizedUsername: { type: String, required: true, unique: true, lowercase: true }, // For internal checks
+  username:  { type: String, required: true, unique: true, trim: true },
+  normalizedUsername: { type: String, required: true, unique: true, lowercase: true },
   email:     { type: String, required: true, unique: true, lowercase: true },
   phone:     { type: String, required: true, unique: true },
   password:  { type: String, required: true },
@@ -12,6 +12,11 @@ const mekatmpSchema = new mongoose.Schema({
   gender:    { type: String, enum: ['male', 'female', 'other'], required: true },
   dob:       { type: Date, required: true },
   world:     { type: String, enum: ['one', 'two'], required: true },
+
+  // ✅ Add these two fields:
+  verificationCode: { type: String },
+  verificationCodeExpires: { type: Date },
+
   verificationToken: { type: String },
   createdAt: { type: Date, default: Date.now, expires: '1d' }
 });
