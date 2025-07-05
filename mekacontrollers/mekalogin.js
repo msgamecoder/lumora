@@ -5,7 +5,7 @@ const sendLumoraMail = require('../mekautils/mekasendMail');
 
 exports.loginUser = async (req, res) => {
   try {
-    const { identifier, password } = req.body;
+    const { identifier, password, deviceId } = req.body;
 
     if (!identifier || !password) {
       return res.status(400).json({ message: '🚨 Please enter both identifier and password.' });
@@ -14,13 +14,10 @@ exports.loginUser = async (req, res) => {
     let result;
 
     if (identifier.includes('@')) {
-      // Try email
       result = await pool.query(`SELECT * FROM mekacore WHERE email = $1 LIMIT 1`, [identifier.toLowerCase()]);
     } else if (/^\d+$/.test(identifier)) {
-      // Try phone
       result = await pool.query(`SELECT * FROM mekacore WHERE phone = $1 LIMIT 1`, [identifier]);
     } else {
-      // Try username
       result = await pool.query(`SELECT * FROM mekacore WHERE username = $1 LIMIT 1`, [identifier]);
     }
 
@@ -35,15 +32,24 @@ exports.loginUser = async (req, res) => {
       return res.status(401).json({ message: '🔐 Incorrect password.' });
     }
 
+    // ✅ JWT token
     const token = jwt.sign(
       { id: user.id_two },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    const loginTime = new Date().toUTCString();
+    // ✅ IP detection
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
 
+    // ✅ Save deviceId + IP
+    await pool.query(
+      `UPDATE mekacore SET device_id = $1, last_ip = $2 WHERE id_two = $3`,
+      [deviceId, ip, user.id_two]
+    );
+
+    // ✅ Optional: Notify user
+    const loginTime = new Date().toUTCString();
     await sendLumoraMail(user.email, null, "login", {
       username: user.username,
       time: loginTime,
@@ -57,7 +63,7 @@ exports.loginUser = async (req, res) => {
         id: user.id_one,
         internalId: user.id_two,
         username: user.username,
-        email: user.email, // 👈 added to help you verify
+        email: user.email,
         world: user.world,
         profileImage: user.profile_image
       }
