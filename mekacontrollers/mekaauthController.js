@@ -67,6 +67,19 @@ const {
     const hashedPassword = await bcrypt.hash(password, 10);
     const code = generateCode();
 
+  const deviceCheck = await pool.query(
+  'SELECT COUNT(*) FROM mekacore WHERE device_id = $1',
+  [deviceId]
+);
+
+const count = parseInt(deviceCheck.rows[0].count);
+
+if (count >= 5) {
+  return res.status(403).json({
+    message: '🚫 Too many accounts created from this device. Please request more access.'
+  });
+}
+
     const newUser = new MekaTmp({
       firstName,
       lastName,
