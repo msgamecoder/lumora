@@ -12,12 +12,10 @@ const mekatmpSchema = new mongoose.Schema({
   gender:    { type: String, enum: ['male', 'female', 'other'], required: true },
   dob:       { type: Date, required: true },
   world:     { type: String, enum: ['one', 'two'], required: true },
-
-  // ✅ Add these two fields:
   verificationCode: { type: String },
   verificationCodeExpires: { type: Date },
-
   verificationToken: { type: String },
+  deviceId: { type: String, required: true },
   createdAt: { type: Date, default: Date.now, expires: '1d' }
 });
 
