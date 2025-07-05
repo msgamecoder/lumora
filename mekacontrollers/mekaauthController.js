@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const MekaTmp = require('../mekamodels/mekatmp');
 const MekaCore = require('../mekaconfig/mekacore');
 const sendLumoraMail = require('../mekautils/mekasendMail');
+const MekaFlag = require('../mekamodels/mekaflag')
 
 function isValidName(name) {
   return /^[a-zA-Z]{1,33}$/.test(name);
@@ -67,19 +68,6 @@ const {
     const hashedPassword = await bcrypt.hash(password, 10);
     const code = generateCode();
 
-  const deviceCheck = await pool.query(
-  'SELECT COUNT(*) FROM mekacore WHERE device_id = $1',
-  [deviceId]
-);
-
-const count = parseInt(deviceCheck.rows[0].count);
-
-if (count >= 5) {
-  return res.status(403).json({
-    message: '🚫 Too many accounts created from this device. Please request more access.'
-  });
-}
-
     const newUser = new MekaTmp({
       firstName,
       lastName,
@@ -104,6 +92,27 @@ if (count >= 5) {
       }
       throw err;
     }
+    
+const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+
+try {
+  const existingFlag = await MekaFlag.findOne({ deviceId, ip });
+
+  if (existingFlag) {
+    existingFlag.totalCreated += 1;
+    existingFlag.lastCreated = new Date();
+
+    if (existingFlag.totalCreated >= 5 && !existingFlag.flagged) {
+      existingFlag.flagged = true;
+    }
+
+    await existingFlag.save();
+  } else {
+    await MekaFlag.create({ deviceId, ip });
+  }
+} catch (err) {
+  console.warn("⚠️ Flag check failed:", err.message);
+}
 
     await sendLumoraMail(email, code, "register", {
       username,
