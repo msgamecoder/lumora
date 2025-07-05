@@ -31,10 +31,10 @@ function generateCode() {
 // 🧾 REGISTER USER
 exports.registerUser = async (req, res) => {
   try {
-    const {
-      firstName, lastName, username, email,
-      phone, gender, dob, world, password
-    } = req.body;
+const {
+  firstName, lastName, username, email,
+  phone, gender, dob, world, password, deviceId
+} = req.body;
 
     if (!firstName || !lastName || !username || !email || !phone || !gender || !dob || !world) {
       return res.status(400).json({ message: '🚨 All fields are required including your world selection!' });
@@ -47,6 +47,9 @@ exports.registerUser = async (req, res) => {
     if (!isValidPhone(phone)) return res.status(400).json({ message: '📱 Phone must contain only digits.' });
     if (!['one', 'two'].includes(world)) return res.status(400).json({ message: '🌍 Choose a valid world: one or two.' });
     if (!isValidPassword(password)) return res.status(400).json({ message: '🔐 Password must be 10 to 15 characters.' });
+    if (!deviceId || typeof deviceId !== 'string') {
+  return res.status(400).json({ message: '📱 Device ID is required and must be a string.' });
+}
 
     // Age check
     const dobDate = new Date(dob);
@@ -76,6 +79,7 @@ exports.registerUser = async (req, res) => {
       world,
       password: hashedPassword,
       verificationCode: code,
+      deviceId,
       verificationCodeExpires: new Date(Date.now() + 15 * 60 * 1000) // 15 mins
     });
 
