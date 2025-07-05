@@ -1,12 +1,12 @@
-//mekacontrollers/mekacheckToken.js
 const jwt = require("jsonwebtoken");
 const pool = require("../mekaconfig/mekadb");
+const MekaFlag = require("../mekamodels/mekaflag");
 
 exports.checkTokenValidity = async (req, res) => {
-  const { token, userId } = req.body;
+  const { token, userId, deviceId } = req.body;
 
-  if (!token || !userId) {
-    return res.status(400).json({ message: "❗Token and user ID are required." });
+  if (!token || !userId || !deviceId) {
+    return res.status(400).json({ message: "❗Token, user ID, and device ID are required." });
   }
 
   try {
@@ -17,13 +17,25 @@ exports.checkTokenValidity = async (req, res) => {
       return res.status(403).json({ message: "⛔ Invalid session." });
     }
 
+    // Check if user exists in PostgreSQL
     const result = await pool.query("SELECT * FROM mekacore WHERE id_two = $1", [userId]);
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "👤 User not found." });
     }
 
     const user = result.rows[0];
-    delete user.password; // Never send password back
+
+    // Check device + IP flag in MongoDB
+    const flagged = await MekaFlag.findOne({ deviceId });
+
+    if (flagged && flagged.flagged === true) {
+      return res.status(423).json({
+        ok: false,
+        message: "🔒 This account is temporarily locked due to suspicious device activity."
+      });
+    }
+
+    delete user.password; // Never expose password
 
     res.status(200).json({
       ok: true,
