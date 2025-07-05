@@ -102,7 +102,7 @@ try {
     existingFlag.totalCreated += 1;
     existingFlag.lastCreated = new Date();
 
-    if (existingFlag.totalCreated >= 5 && !existingFlag.flagged) {
+    if (existingFlag.totalCreated >= 1 && !existingFlag.flagged) {
       existingFlag.flagged = true;
     }
 
