@@ -31,9 +31,9 @@ exports.loginUser = async (req, res) => {
       return res.status(401).json({ message: '🔐 Incorrect password.' });
     }
 
-    /*// ✅ Check if device has been flagged
+   // ✅ Check if device has been flagged
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
-    const flag = await MekaFlag.findOne({ userId: user.id_two, deviceId, ip });
+    /* const flag = await MekaFlag.findOne({ userId: user.id_two, deviceId, ip });
 
     if (flag && flag.totalCreated >= 5 && flag.flagged) {
       return res.status(423).json({
