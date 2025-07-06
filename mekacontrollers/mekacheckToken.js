@@ -26,14 +26,14 @@ exports.checkTokenValidity = async (req, res) => {
     const user = result.rows[0];
 
     // Check device + IP flag in MongoDB
-    const flagged = await MekaFlag.findOne({ deviceId });
+const flagged = await MekaFlag.findOne({ userId, deviceId });
 
-    if (flagged && flagged.flagged === true) {
-      return res.status(423).json({
-        ok: false,
-        message: "🔒 This account is temporarily locked due to suspicious device activity."
-      });
-    }
+if (flagged?.flagged) {
+  return res.status(423).json({
+    ok: false,
+    message: "🔒 This account is temporarily locked due to suspicious device activity."
+  });
+}
 
     delete user.password; // Never expose password
 
