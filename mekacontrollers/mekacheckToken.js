@@ -29,10 +29,11 @@ exports.checkTokenValidity = async (req, res) => {
 const flagged = await MekaFlag.findOne({ userId, deviceId });
 
 if (flagged?.flagged) {
-  return res.status(423).json({
-    ok: false,
-    message: "🔒 This account is temporarily locked due to suspicious device activity."
-  });
+return res.status(423).json({
+  ok: false,
+  reason: "locked",
+  message: "🔒 Account flagged."
+});
 }
 
     delete user.password; // Never expose password
