@@ -33,9 +33,9 @@ exports.loginUser = async (req, res) => {
 
     // ✅ Check if device has been flagged
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
-    const flag = await MekaFlag.findOne({ deviceId, ip });
+    const flag = await MekaFlag.findOne({ userId: user.id_two, deviceId, ip });
 
-    if (flag && flag.totalCreated >= 5 && flag.flagged) {
+    if (flag && flag.totalCreated >= 1 && flag.flagged) {
       return res.status(423).json({
         message: '⛔ This account is under review for suspicious activity. Please wait 10 minutes while our system checks your behavior on Lumora. Do not log out to avoid a permanent device ban.'
       });
