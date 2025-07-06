@@ -69,7 +69,8 @@ exports.loginUser = async (req, res) => {
         username: user.username,
         email: user.email,
         world: user.world,
-        profileImage: user.profile_image
+        profileImage: user.profile_image,
+        flagged: isFlagged
       }
     });
 
