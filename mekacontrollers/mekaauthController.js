@@ -93,27 +93,6 @@ const {
       throw err;
     }
     
-const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
-
-try {
-  const existingFlag = await MekaFlag.findOne({ deviceId, ip });
-
-  if (existingFlag) {
-    existingFlag.totalCreated += 1;
-    existingFlag.lastCreated = new Date();
-
-    if (existingFlag.totalCreated >= 1 && !existingFlag.flagged) {
-      existingFlag.flagged = true;
-    }
-
-    await existingFlag.save();
-  } else {
-    await MekaFlag.create({ deviceId, ip });
-  }
-} catch (err) {
-  console.warn("⚠️ Flag check failed:", err.message);
-}
-
     await sendLumoraMail(email, code, "register", {
       username,
       world
@@ -149,7 +128,36 @@ exports.verifyUser = async (req, res) => {
     const savedUser = await MekaCore.insertCoreUser(user);
     await user.deleteOne();
 
+    // ✅ Device flag logic goes BEFORE res.status
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+    const deviceId = user.deviceId; // get it from the old tmp user
+
+    try {
+      const existingFlag = await MekaFlag.findOne({ userId: savedUser.id_two, deviceId, ip });
+
+      if (existingFlag) {
+        existingFlag.totalCreated += 1;
+        existingFlag.lastCreated = new Date();
+
+        if (existingFlag.totalCreated >= 1 && !existingFlag.flagged) {
+          existingFlag.flagged = true;
+        }
+
+        await existingFlag.save();
+      } else {
+        await MekaFlag.create({
+          userId: savedUser.id_two,
+          deviceId,
+          ip
+        });
+      }
+    } catch (err) {
+      console.warn("⚠️ Flag update failed:", err.message);
+    }
+
+    // ✅ Now respond
     return res.status(200).json({ message: '✅ Account verified successfully.' });
+
   } catch (err) {
     console.error("🔴 Verification Error:", err);
     return res.status(500).json({ message: '💥 Internal server error.' });
