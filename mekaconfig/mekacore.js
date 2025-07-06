@@ -15,39 +15,39 @@ async function insertCoreUser(user) {
   const idOne = 'MX-' + Math.floor(100000 + Math.random() * 900000);
   const idTwo = crypto.randomUUID();
 
-const query = `
-  INSERT INTO mekacore (
-    id_one, id_two, first_name, last_name,
-    username, email, phone, password, profile_image,
-    gender, dob, world, device_id, created_at
-  )
-  VALUES (
-    $1, $2, $3, $4,
-    $5, $6, $7, $8, $9,
-    $10, $11, $12, $13, $14
-  )
-  RETURNING id_one
-`;
+  const query = `
+    INSERT INTO mekacore (
+      id_one, id_two, first_name, last_name,
+      username, email, phone, password, profile_image,
+      gender, dob, world, device_id, created_at
+    )
+    VALUES (
+      $1, $2, $3, $4,
+      $5, $6, $7, $8, $9,
+      $10, $11, $12, $13, $14
+    )
+    RETURNING id_one, id_two
+  `;
 
-const values = [
-  idOne,
-  idTwo,
-  user.firstName,
-  user.lastName,
-  user.username,
-  user.email,
-  user.phone,
-  user.password,
-  user.profileImage,
-  user.gender,
-  user.dob,
-  user.world,
-  user.deviceId,
-  new Date() // 👈 JS equivalent of NOW()
-];
+  const values = [
+    idOne,
+    idTwo,
+    user.firstName,
+    user.lastName,
+    user.username,
+    user.email,
+    user.phone,
+    user.password,
+    user.profileImage,
+    user.gender,
+    user.dob,
+    user.world,
+    user.deviceId,
+    new Date()
+  ];
 
   const result = await pool.query(query, values);
-  return result.rows[0];
+  return result.rows[0]; // ✅ now has id_two!
 }
 
 async function checkUsernameExists(username) {
