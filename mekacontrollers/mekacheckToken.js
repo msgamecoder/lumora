@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
 const pool = require("../mekaconfig/mekadb");
-const MekaFlag = require("../mekamodels/mekaflag");
 
 exports.checkTokenValidity = async (req, res) => {
   const { token, userId, deviceId } = req.body;
@@ -17,24 +16,33 @@ exports.checkTokenValidity = async (req, res) => {
       return res.status(403).json({ message: "⛔ Invalid session." });
     }
 
-    // Check if user exists in PostgreSQL
-// Instead of checking MongoDB, check PostgreSQL core user record
-const result = await pool.query("SELECT * FROM mekacore WHERE id_two = $1", [userId]);
-if (result.rows.length === 0) {
-  return res.status(404).json({ message: "👤 User not found." });
-}
+    const result = await pool.query("SELECT * FROM mekacore WHERE id_two = $1", [userId]);
 
-const user = result.rows[0];
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "👤 User not found." });
+    }
 
-if (user.flagged === true) {
-  return res.status(423).json({
-    ok: false,
-    reason: "locked",
-    message: "🔒 Account flagged."
-  });
-}
+    const user = result.rows[0];
 
-    delete user.password; // Never expose password
+    // 🛑 First check if account is banned
+    if (user.world === 'banned') {
+      return res.status(401).json({
+        ok: false,
+        reason: "banned",
+        message: "⛔ Account is banned."
+      });
+    }
+
+    // ⏳ Then check if it’s flagged (under review)
+    if (user.flagged === true) {
+      return res.status(423).json({
+        ok: false,
+        reason: "locked",
+        message: "🔒 Account flagged."
+      });
+    }
+
+    delete user.password;
 
     res.status(200).json({
       ok: true,
