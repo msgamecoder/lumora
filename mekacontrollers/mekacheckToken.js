@@ -18,22 +18,20 @@ exports.checkTokenValidity = async (req, res) => {
     }
 
     // Check if user exists in PostgreSQL
-    const result = await pool.query("SELECT * FROM mekacore WHERE id_two = $1", [userId]);
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "👤 User not found." });
-    }
+// Instead of checking MongoDB, check PostgreSQL core user record
+const result = await pool.query("SELECT * FROM mekacore WHERE id_two = $1", [userId]);
+if (result.rows.length === 0) {
+  return res.status(404).json({ message: "👤 User not found." });
+}
 
-    const user = result.rows[0];
+const user = result.rows[0];
 
-    // Check device + IP flag in MongoDB
-const flagged = await MekaFlag.findOne({ userId, deviceId });
-
-if (flagged?.flagged) {
-return res.status(423).json({
-  ok: false,
-  reason: "locked",
-  message: "🔒 Account flagged."
-});
+if (user.flagged === true) {
+  return res.status(423).json({
+    ok: false,
+    reason: "locked",
+    message: "🔒 Account flagged."
+  });
 }
 
     delete user.password; // Never expose password
