@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const pool = require('../mekaconfig/mekadb');
-const MekaFlag = require('../mekamodels/mekaflag');
+//const MekaFlag = require('../mekamodels/mekaflag');
 const sendLumoraMail = require('../mekautils/mekasendMail');
 
 exports.loginUser = async (req, res) => {
@@ -33,8 +33,8 @@ exports.loginUser = async (req, res) => {
 
    // ✅ Check if device has been flagged
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
-    const flag = await MekaFlag.findOne({ userId: user.id_two, deviceId, ip });
-     const isFlagged = flag && flag.flagged === true;
+    // ✅ Use the PostgreSQL column
+const isFlagged = user.flagged === true;
 
     /*  if (flag && flag.totalCreated >= 5 && flag.flagged) {
       return res.status(423).json({
