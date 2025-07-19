@@ -133,21 +133,20 @@ exports.verifyUser = async (req, res) => {
     const deviceId = user.deviceId; // get it from the old tmp user
 
     try {
-      const existingFlag = await MekaFlag.findOne({ userId: savedUser.id_two, deviceId, ip });
+const count = await MekaFlag.countDocuments({ deviceId, ip });
 
-if (existingFlag) {
-  existingFlag.totalCreated += 1;
-  existingFlag.lastCreated = new Date();
+if (count >= 1) {
+  await MekaFlag.create({
+    userId: savedUser.id_two,
+    deviceId,
+    ip,
+    flagged: true
+  });
 
-  if (existingFlag.totalCreated >= 1 && !existingFlag.flagged) {
-    existingFlag.flagged = true;
+  // ✅ Also flag in PostgreSQL
+  const pool = require('../mekaconfig/mekadb');
+  await pool.query(`UPDATE mekacore SET flagged = true WHERE id_two = $1`, [savedUser.id_two]);
 
-    // ✅ Also flag in PostgreSQL
-    const pool = require('../mekaconfig/mekadb');
-    await pool.query(`UPDATE mekacore SET flagged = true WHERE id_two = $1`, [savedUser.id_two]);
-  }
-
-  await existingFlag.save();
 } else {
   await MekaFlag.create({
     userId: savedUser.id_two,
