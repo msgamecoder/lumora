@@ -135,22 +135,26 @@ exports.verifyUser = async (req, res) => {
     try {
       const existingFlag = await MekaFlag.findOne({ userId: savedUser.id_two, deviceId, ip });
 
-      if (existingFlag) {
-        existingFlag.totalCreated += 1;
-        existingFlag.lastCreated = new Date();
+if (existingFlag) {
+  existingFlag.totalCreated += 1;
+  existingFlag.lastCreated = new Date();
 
-        if (existingFlag.totalCreated >= 1 && !existingFlag.flagged) {
-          existingFlag.flagged = true;
-        }
+  if (existingFlag.totalCreated >= 1 && !existingFlag.flagged) {
+    existingFlag.flagged = true;
 
-        await existingFlag.save();
-      } else {
-        await MekaFlag.create({
-          userId: savedUser.id_two,
-          deviceId,
-          ip
-        });
-      }
+    // ✅ Also flag in PostgreSQL
+    const pool = require('../mekaconfig/mekadb');
+    await pool.query(`UPDATE mekacore SET flagged = true WHERE id_two = $1`, [savedUser.id_two]);
+  }
+
+  await existingFlag.save();
+} else {
+  await MekaFlag.create({
+    userId: savedUser.id_two,
+    deviceId,
+    ip
+  });
+}
     } catch (err) {
       console.warn("⚠️ Flag update failed:", err.message);
     }
