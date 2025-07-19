@@ -19,5 +19,5 @@ router.post('/meka/recover', recoverUnverifiedWithPassword);
 router.post('/meka/forgot', forgotController.sendResetCode);
 router.post('/meka/reset', forgotController.resetPassword);
 router.post('/meka/check-token', checkTokenValidity);
-router.post("/ban-on-review-logout", banOnReviewLogout);
+router.post("/meka/ban-on-review-logout", banOnReviewLogout);
 module.exports = router;
