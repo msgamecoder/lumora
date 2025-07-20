@@ -1,7 +1,7 @@
 // mekaroutes/auth.js
 const express = require('express');
 const router = express.Router();
-const { registerUser, verifyUser, recoverUnverifiedWithPassword } = require('../mekacontrollers/mekaauthController');
+const { registerUser, verifyUser, recoverUnverifiedWithPassword, submitIdentityReview } = require('../mekacontrollers/mekaauthController');
 const { loginUser } = require('../mekacontrollers/mekalogin');
 const { checkUsername, checkEmail, checkPhone } = require('../mekacontrollers/mekaauthCheck');
 const forgotController = require('../mekacontrollers/mekaforgotController');
@@ -20,4 +20,5 @@ router.post('/meka/forgot', forgotController.sendResetCode);
 router.post('/meka/reset', forgotController.resetPassword);
 router.post('/meka/check-token', checkTokenValidity);
 router.post("/meka/ban-on-review-logout", banOnReviewLogout);
+router.post('/meka/review', submitIdentityReview);
 module.exports = router;
