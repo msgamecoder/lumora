@@ -4,6 +4,7 @@ const MekaTmp = require('../mekamodels/mekatmp');
 const MekaCore = require('../mekaconfig/mekacore');
 const sendLumoraMail = require('../mekautils/mekasendMail');
 const MekaFlag = require('../mekamodels/mekaflag')
+const pool = require('../mekaconfig/mekadb'); // postgres pool
 
 function isValidName(name) {
   return /^[a-zA-Z]{1,33}$/.test(name);
@@ -206,3 +207,59 @@ exports.recoverUnverifiedWithPassword = async (req, res) => {
     return res.status(500).json({ message: '💥 Internal server error.' });
   }
 };
+
+exports.submitIdentityReview = async (req, res) => {
+  try {
+    const { fullName, age, faceBase64, deviceId } = req.body;
+
+    if (!fullName || !age || !faceBase64 || !deviceId) {
+      return res.status(400).json({ message: "❌ All fields are required." });
+    }
+
+    const user = await pool.query(
+      `SELECT * FROM mekacore WHERE device_id = $1 LIMIT 1`,
+      [deviceId]
+    );
+
+    if (user.rows.length === 0) {
+      return res.status(404).json({ message: "🚫 No user found with this device ID." });
+    }
+
+    const now = new Date();
+
+    await pool.query(`
+      UPDATE mekacore
+      SET review_status = $1,
+          review_started_at = $2,
+          face_data = $3
+      WHERE device_id = $4
+    `, ['pending', now, faceBase64, deviceId]);
+
+    return res.status(200).json({
+      message: "⏳ Review started. Please wait 10 minutes."
+    });
+  } catch (err) {
+    console.error("🔴 Identity review error:", err.message);
+    return res.status(500).json({ message: "💥 Internal server error." });
+  }
+};
+
+async function checkPendingReviews() {
+  const now = new Date();
+
+  const result = await pool.query(`
+    UPDATE mekacore
+    SET review_status = 'forgiven'
+    WHERE review_status = 'pending'
+    AND review_started_at <= NOW() - INTERVAL '10 minutes'
+    RETURNING id_two, device_id, username;
+  `);
+
+  result.rows.forEach(user => {
+    // 📣 notify them however you want (socket, firebase, etc.)
+    console.log(`✅ User ${user.username} forgiven. Tell them to logout and re-login.`);
+  });
+}
+
+// Run every 1 min
+setInterval(checkPendingReviews, 60 * 1000);
