@@ -148,7 +148,7 @@
           // 🚫 Ban user
           banBtn.onclick = async () => {
             const res = await post("/admin/meka/ban", { userId: user.id_two });
-            document.getElementById(`status-${user.id_two}`).textContent = res.message || "🚫 Banned";
+           document.getElementById(`status-${user.id_two}`).textContent = "❌ User banned. This cannot be undone.";
           };
 
           // ✉️ Send message
