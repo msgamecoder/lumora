@@ -88,9 +88,13 @@ exports.getReviewStartTime = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const started = result.rows[0].review_started_at;
+    const started = new Date(result.rows[0].review_started_at);
+    const reviewEndTime = new Date(started.getTime() + 10 * 60 * 1000); // 10 minutes later
 
-    return res.status(200).json({ reviewStartedAt: started });
+    return res.status(200).json({
+      reviewStartedAt: started,
+      reviewEndsAt: reviewEndTime
+    });
   } catch (err) {
     console.error("🔥 Failed to get review time:", err.message);
     return res.status(500).json({ error: "Server error" });
