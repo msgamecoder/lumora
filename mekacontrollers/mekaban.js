@@ -72,3 +72,27 @@ exports.banOnReviewLogout = async (req, res) => {
     return res.status(500).json({ message: "🔥 Server error." });
   }
 };
+
+exports.getReviewStartTime = async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId) return res.status(400).json({ error: "Missing userId" });
+
+  try {
+    const result = await pool.query(
+      `SELECT review_started_at FROM mekacore WHERE id_two = $1`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const started = result.rows[0].review_started_at;
+
+    return res.status(200).json({ reviewStartedAt: started });
+  } catch (err) {
+    console.error("🔥 Failed to get review time:", err.message);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
