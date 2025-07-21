@@ -49,3 +49,19 @@ exports.sendReviewMessage = async (req, res) => {
     res.status(500).json({ message: '💥 Failed to send message.' });
   }
 };
+
+// Frontend: fetch review message for locked user
+exports.getReviewMessage = async (req, res) => {
+  const { userId } = req.body;
+  try {
+    const doc = await MekaFlag.findOne({ userId });
+    if (doc?.reviewMessage) {
+      res.status(200).json({ message: doc.reviewMessage });
+    } else {
+      res.status(204).send();
+    }
+  } catch (err) {
+    console.error("❌ getReviewMessage:", err);
+    res.status(500).json({ message: '💥 Failed to fetch review message.' });
+  }
+};
