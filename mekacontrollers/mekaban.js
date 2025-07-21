@@ -17,21 +17,35 @@ exports.banOnReviewLogout = async (req, res) => {
     }
 
     const result = await pool.query(
-      `SELECT flagged, world FROM mekacore WHERE id_two = $1`,
+      `SELECT flagged, world, review_started_at FROM mekacore WHERE id_two = $1`,
       [userId]
     );
 
     if (result.rows.length === 0) {
-      console.warn("❌ User not found in mekacore:", userId);
-      return res.status(404).json({ message: "User not found in main DB." });
+      return res.status(404).json({ message: "User not found." });
     }
 
     const user = result.rows[0];
-    console.log("👀 Checking user flag/ban status:", user);
+    const started = new Date(user.review_started_at);
+    const now = new Date();
+    const diffMins = (now - started) / 60000;
 
-    if (user.world !== 'banned') {
-      console.log("🚨 User needs to be banned. Updating...");
+    if (diffMins >= 10 && diffMins < 30) {
+      // allow logout but do NOT ban
+      await pool.query(`
+        UPDATE mekacore
+        SET flagged = false,
+            world = 'active',
+            review_status = 'passed'
+        WHERE id_two = $1
+      `, [userId]);
 
+      console.log("✅ Review passed, user unflagged.");
+      return res.status(200).json({ message: "✅ You may now logout safely." });
+    }
+
+    if (diffMins < 10) {
+      // Still within suspicious time
       await pool.query(`
         UPDATE mekacore
         SET flagged = true,
@@ -40,15 +54,23 @@ exports.banOnReviewLogout = async (req, res) => {
         WHERE id_two = $1
       `, [userId]);
 
-      console.log("✅ Ban applied successfully.");
-      return res.status(200).json({ message: "✅ User banned successfully." });
-    } else {
-      console.log("⚠️ User already banned. No update needed.");
-      return res.status(200).json({ message: "⚠️ User already banned." });
+      console.log("❌ User banned due to early logout.");
+      return res.status(200).json({ message: "⛔ You were banned for logging out early." });
     }
 
+    // Over 30 mins — no ban, reset
+    await pool.query(`
+      UPDATE mekacore
+      SET flagged = false,
+          world = 'active',
+          review_status = 'passed'
+      WHERE id_two = $1
+    `, [userId]);
+
+    return res.status(200).json({ message: "✅ No ban, session cleared." });
+
   } catch (err) {
-    console.error("❌ banOnReviewLogout error:", err.message);
-    return res.status(500).json({ message: "🔥 Server error while banning user." });
+    console.error("🔥 Server error:", err.message);
+    return res.status(500).json({ message: "🔥 Server error." });
   }
 };
