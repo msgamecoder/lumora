@@ -208,7 +208,7 @@ exports.recoverUnverifiedWithPassword = async (req, res) => {
   }
 };
 
-exports.submitIdentityReview = async (req, res) => {
+/*exports.submitIdentityReview = async (req, res) => {
   try {
     const { fullName, age, faceBase64, deviceId } = req.body;
 
@@ -263,3 +263,4 @@ async function checkPendingReviews() {
 
 // Run every 1 min
 setInterval(checkPendingReviews, 60 * 1000);
+*/
