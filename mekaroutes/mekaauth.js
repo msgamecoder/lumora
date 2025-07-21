@@ -14,10 +14,7 @@ const {
 } = require('../mekacontrollers/mekaauthCheck');
 const forgotController = require('../mekacontrollers/mekaforgotController');
 const { checkTokenValidity } = require('../mekacontrollers/mekacheckToken');
-const {
-  banOnReviewLogout,
-  getReviewStartTime // ✅ add this line
-} = require('../mekacontrollers/mekaban');
+const { banOnReviewLogout } = require('../mekacontrollers/mekaban');
 
 router.post('/meka/register', registerUser);
 router.post('/meka/verify', verifyUser);
@@ -33,8 +30,5 @@ router.post('/meka/reset', forgotController.resetPassword);
 router.post('/meka/check-token', checkTokenValidity);
 
 router.post("/meka/ban-on-review-logout", banOnReviewLogout);
-
-// ✅ NEW: Add the GET route here
-router.get("/meka/review-start-time", getReviewStartTime);
 
 module.exports = router;
