@@ -18,6 +18,7 @@ const allowedOrigins = [
   "file://",
   "http://localhost:5500",
   "http://127.0.0.1:5500",
+  "http://127.0.0.1:5501",
   "http://localhost",
   "https://localhost", // ✅ NEW: This is what caused the CORS block!
   "https://mxgamecoder.lovestoblog.com",
