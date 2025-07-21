@@ -27,15 +27,15 @@ exports.banOnReviewLogout = async (req, res) => {
     }
 
     const user = result.rows[0];
-    console.log("👀 Checking user flag/ban status:", user);
+    console.log("👀 Scanning user status:", user);
 
     if (user.flagged === false) {
-      console.log("✅ User has already been cleared by admin. No ban.");
+      console.log("✅ User is already cleared by admin. No ban.");
       return res.status(200).json({ message: "✅ Review passed. No ban needed." });
     }
 
-    if (user.world !== 'banned') {
-      console.log("🚨 User needs to be banned. Updating...");
+    if (user.flagged === true && user.world !== 'banned') {
+      console.log("🚨 Still flagged and not banned yet. Proceeding to ban...");
 
       await pool.query(`
         UPDATE mekacore
@@ -45,12 +45,17 @@ exports.banOnReviewLogout = async (req, res) => {
         WHERE id_two = $1
       `, [userId]);
 
-      console.log("✅ Ban applied successfully.");
-      return res.status(200).json({ message: "✅ User banned successfully." });
-    } else {
-      console.log("⚠️ User already banned. No update needed.");
-      return res.status(200).json({ message: "⚠️ User already banned." });
+      console.log("✅ Ban applied.");
+      return res.status(200).json({ message: "✅ User banned after logout while under review." });
     }
+
+    if (user.world === 'banned') {
+      console.log("⚠️ User already banned.");
+      return res.status(200).json({ message: "⚠️ User was already banned." });
+    }
+
+    console.log("🤷 Unexpected state. No action taken.");
+    return res.status(200).json({ message: "🤷 No action taken. Possibly already cleared or handled." });
 
   } catch (err) {
     console.error("❌ banOnReviewLogout error:", err.message);
