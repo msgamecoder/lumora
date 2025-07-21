@@ -29,6 +29,11 @@ exports.banOnReviewLogout = async (req, res) => {
     const user = result.rows[0];
     console.log("👀 Checking user flag/ban status:", user);
 
+    if (user.flagged === false) {
+      console.log("✅ User has already been cleared by admin. No ban.");
+      return res.status(200).json({ message: "✅ Review passed. No ban needed." });
+    }
+
     if (user.world !== 'banned') {
       console.log("🚨 User needs to be banned. Updating...");
 
