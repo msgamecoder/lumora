@@ -7,7 +7,10 @@ const flagSchema = new mongoose.Schema({
   totalCreated: { type: Number, default: 1 },
   lastCreated: { type: Date, default: Date.now },
   flagged: { type: Boolean, default: false },
-  reason: { type: String, default: 'suspicious multiple account creation' }
+  reason: { type: String, default: 'suspicious multiple account creation' },
+
+  // ✅ Add this field
+  reviewMessage: { type: String, default: null }
 }, { timestamps: true });
 
 // 🚨 NEW: unique per userId + device + ip
