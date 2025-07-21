@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>⚙️ Admin Panel | Lumora</title>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"/>
+  <style>
+    :root {
+      --lumora: #8e2de2;
+      --bg: #111;
+      --text: #eee;
+      --danger: #ff4c4c;
+      --ok: #3fdc77;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--lumora);
+    }
+
+    .user {
+      background: #1b1b1b;
+      border-left: 4px solid var(--lumora);
+      padding: 1rem;
+      margin-bottom: 1.2rem;
+      border-radius: 0.5rem;
+    }
+
+    .user p {
+      margin-bottom: 0.3rem;
+      font-size: 0.9rem;
+    }
+
+    .actions {
+      margin-top: 0.8rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    button, textarea {
+      font-size: 0.9rem;
+      padding: 0.5rem;
+      border-radius: 0.4rem;
+      border: none;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .unflag { background: var(--ok); }
+    .ban { background: var(--danger); }
+    .send { background: var(--lumora); }
+
+    textarea {
+      width: 100%;
+      background: #222;
+      color: #ccc;
+      border: 1px solid #333;
+      margin-top: 0.5rem;
+    }
+
+    .status {
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--ok);
+    }
+  </style>
+</head>
+<body>
+  <h1>🛠️ Lumora Admin Panel — Flagged Users</h1>
+
+  <div id="userList">Loading flagged users...</div>
+
+  <script>
+    const API_BASE = "https://lumora-usrb.onrender.com";
+
+    async function post(endpoint, body = {}) {
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      return res.json();
+    }
+
+    async function loadFlaggedUsers() {
+      const userList = document.getElementById("userList");
+      userList.textContent = "Loading...";
+
+      try {
+        const res = await fetch(`${API_BASE}/admin/meka/flagged`);
+        const users = await res.json();
+
+        if (!Array.isArray(users) || users.length === 0) {
+          userList.innerHTML = "<p>No flagged users found ✅</p>";
+          return;
+        }
+
+        userList.innerHTML = "";
+
+        users.forEach(user => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "user";
+
+          wrapper.innerHTML = `
+            <p><b>👤 ${user.username}</b> (${user.world})</p>
+            <p>📧 ${user.email}</p>
+            <p>🆔 ${user.id_two}</p>
+
+            <textarea placeholder="Optional review message..." id="msg-${user.id_two}"></textarea>
+
+            <div class="actions">
+              <button class="unflag">✅ Unflag</button>
+              <button class="ban">🚫 Ban</button>
+              <button class="send">📩 Send Message</button>
+            </div>
+
+            <div class="status" id="status-${user.id_two}"></div>
+          `;
+
+          const [unflagBtn, banBtn, sendBtn] = wrapper.querySelectorAll("button");
+
+          // ✅ Unflag user
+          unflagBtn.onclick = async () => {
+            const res = await post("/admin/meka/unflag", { userId: user.id_two });
+            document.getElementById(`status-${user.id_two}`).textContent = res.message || "✅ Done";
+            wrapper.remove(); // auto-remove on unflag
+          };
+
+          // 🚫 Ban user
+          banBtn.onclick = async () => {
+            const res = await post("/admin/meka/ban", { userId: user.id_two });
+            document.getElementById(`status-${user.id_two}`).textContent = res.message || "🚫 Banned";
+          };
+
+          // ✉️ Send message
+          sendBtn.onclick = async () => {
+            const msg = document.getElementById(`msg-${user.id_two}`).value.trim();
+            if (!msg) return alert("Write a message first.");
+            const res = await post("/admin/meka/review-message", {
+              userId: user.id_two,
+              message: msg
+            });
+            document.getElementById(`status-${user.id_two}`).textContent = "📩 Message sent.";
+          };
+
+          userList.appendChild(wrapper);
+        });
+      } catch (err) {
+        console.error("❌ Error loading flagged users:", err);
+        userList.innerHTML = "<p>⚠️ Failed to load flagged accounts.</p>";
+      }
+    }
+
+    loadFlaggedUsers();
+  </script>
+</body>
+</html>
