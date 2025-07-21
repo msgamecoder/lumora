@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getFlaggedUsers, unflagUser, banUser, sendReviewMessage } = require('../mekacontrollers/mekaadminController');
+const { getFlaggedUsers, unflagUser, banUser, sendReviewMessage, getReviewMessage } = require('../mekacontrollers/mekaadminController');
 
 // Get all flagged accounts
 router.get('/flagged', getFlaggedUsers);
