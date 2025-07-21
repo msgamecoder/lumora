@@ -14,4 +14,6 @@ router.post('/ban', banUser);
 // Send review message
 router.post('/review-message', sendReviewMessage);
 
+router.post('/get-review-message', getReviewMessage); // for frontend use
+
 module.exports = router;
