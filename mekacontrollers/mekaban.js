@@ -17,7 +17,7 @@ exports.banOnReviewLogout = async (req, res) => {
     }
 
     const result = await pool.query(
-      `SELECT flagged, world, review_started_at FROM mekacore WHERE id_two = $1`,
+      `SELECT review_started_at FROM mekacore WHERE id_two = $1`,
       [userId]
     );
 
@@ -25,13 +25,12 @@ exports.banOnReviewLogout = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    const user = result.rows[0];
-    const started = new Date(user.review_started_at);
+    const started = new Date(result.rows[0].review_started_at);
+    const reviewEndsAt = new Date(started.getTime() + 10 * 60 * 1000); // you can make this 60 * 60 for 1 hr later
     const now = new Date();
-    const diffMins = (now - started) / 60000;
 
-    if (diffMins >= 10 && diffMins < 30) {
-      // Passed review
+    if (now >= reviewEndsAt) {
+      // Passed review - clean logout
       await pool.query(`
         UPDATE mekacore
         SET flagged = false,
@@ -39,64 +38,24 @@ exports.banOnReviewLogout = async (req, res) => {
         WHERE id_two = $1
       `, [userId]);
 
-      console.log("✅ Review passed, user unflagged.");
+      console.log("✅ Review complete. Account unflagged.");
       return res.status(200).json({ message: "✅ You may now logout safely." });
     }
 
-    if (diffMins < 10) {
-      // Too early — ban
-      await pool.query(`
-        UPDATE mekacore
-        SET flagged = true,
-            world = 'banned',
-            profile_image = 'https://i.ibb.co/LvbHJYg/locked-avatar.png'
-        WHERE id_two = $1
-      `, [userId]);
-
-      console.log("❌ User banned due to early logout.");
-      return res.status(200).json({ message: "⛔ You were banned for logging out early." });
-    }
-
-    // Over 30 mins — just reset flags
+    // Too early – ban permanently
     await pool.query(`
       UPDATE mekacore
-      SET flagged = false,
-          review_status = 'passed'
+      SET flagged = true,
+          world = 'banned',
+          profile_image = 'https://i.ibb.co/LvbHJYg/locked-avatar.png'
       WHERE id_two = $1
     `, [userId]);
 
-    return res.status(200).json({ message: "✅ No ban, session cleared." });
+    console.log("❌ User banned for logging out early.");
+    return res.status(200).json({ message: "⛔ You were banned for logging out early." });
 
   } catch (err) {
     console.error("🔥 Server error:", err.message);
     return res.status(500).json({ message: "🔥 Server error." });
-  }
-};
-
-exports.getReviewStartTime = async (req, res) => {
-  const { userId } = req.query;
-
-  if (!userId) return res.status(400).json({ error: "Missing userId" });
-
-  try {
-    const result = await pool.query(
-      `SELECT review_started_at FROM mekacore WHERE id_two = $1`,
-      [userId]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const started = new Date(result.rows[0].review_started_at);
-    const reviewEndTime = new Date(started.getTime() + 10 * 60 * 1000); // 10 minutes later
-
-    return res.status(200).json({
-      reviewStartedAt: started,
-      reviewEndsAt: reviewEndTime
-    });
-  } catch (err) {
-    console.error("🔥 Failed to get review time:", err.message);
-    return res.status(500).json({ error: "Server error" });
   }
 };
