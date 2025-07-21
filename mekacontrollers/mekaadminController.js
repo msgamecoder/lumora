@@ -65,7 +65,7 @@ exports.getReviewMessage = async (req, res) => {
     if (doc?.reviewMessage) {
       res.status(200).json({ message: doc.reviewMessage });
     } else {
-      res.status(204).send();
+      res.status(200).json({ message: null });  // ✅ Always return JSON
     }
   } catch (err) {
     console.error("❌ getReviewMessage:", err);
