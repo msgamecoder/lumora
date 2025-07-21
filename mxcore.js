@@ -46,6 +46,7 @@ app.use(cookieParser());
 app.use(express.static("public")); // or "client", "frontend", etc.
 app.use('/api/auth', authRoutes);
 app.use('/api/geo', geoRoute);
+app.use('/admin/meka', require('../mekaroutes/mekaadmin'));
 
 // Start server
 const PORT = process.env.PORT || 5000;
