@@ -31,11 +31,10 @@ exports.banOnReviewLogout = async (req, res) => {
     const diffMins = (now - started) / 60000;
 
     if (diffMins >= 10 && diffMins < 30) {
-      // allow logout but do NOT ban
+      // Passed review
       await pool.query(`
         UPDATE mekacore
         SET flagged = false,
-            world = 'active',
             review_status = 'passed'
         WHERE id_two = $1
       `, [userId]);
@@ -45,7 +44,7 @@ exports.banOnReviewLogout = async (req, res) => {
     }
 
     if (diffMins < 10) {
-      // Still within suspicious time
+      // Too early — ban
       await pool.query(`
         UPDATE mekacore
         SET flagged = true,
@@ -58,11 +57,10 @@ exports.banOnReviewLogout = async (req, res) => {
       return res.status(200).json({ message: "⛔ You were banned for logging out early." });
     }
 
-    // Over 30 mins — no ban, reset
+    // Over 30 mins — just reset flags
     await pool.query(`
       UPDATE mekacore
       SET flagged = false,
-          world = 'active',
           review_status = 'passed'
       WHERE id_two = $1
     `, [userId]);
