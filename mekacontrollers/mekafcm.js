@@ -13,11 +13,15 @@ const sendPushNotification = async (req, res) => {
       title,
       body,
     },
-    data: data || {}, // Optional custom key/value data
+    data: {
+      ...(data || {}),
+      click_action: "FLUTTER_NOTIFICATION_CLICK"
+    }
   };
 
   try {
     const response = await admin.messaging().send(message);
+    console.log("✅ Push sent:", response);
     res.json({ success: true, response });
   } catch (err) {
     console.error('❌ FCM error:', err);
