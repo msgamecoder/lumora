@@ -151,16 +151,29 @@
            document.getElementById(`status-${user.id_two}`).textContent = "❌ User banned. This cannot be undone.";
           };
 
-          // ✉️ Send message
-          sendBtn.onclick = async () => {
-            const msg = document.getElementById(`msg-${user.id_two}`).value.trim();
-            if (!msg) return alert("Write a message first.");
-            const res = await post("/admin/meka/review-message", {
-              userId: user.id_two,
-              message: msg
-            });
-            document.getElementById(`status-${user.id_two}`).textContent = "📩 Message sent.";
-          };
+// ✉️ Send message + Push Notification
+sendBtn.onclick = async () => {
+  const msg = document.getElementById(`msg-${user.id_two}`).value.trim();
+  if (!msg) return alert("Write a message first.");
+
+  // Step 1: Send backend review message (existing)
+  const res1 = await post("/admin/meka/review-message", {
+    userId: user.id_two,
+    message: msg
+  });
+
+  // Step 2: Send push notification (new)
+  const res2 = await post("/api/auth/meka/send-push", {
+    fcmToken: user.fcm_token, // assuming your flagged user object includes it
+    title: "🧠 Lumora Review",
+    body: msg || "New update from admin",
+    data: { screen: "review" }
+  });
+
+  // Feedback
+  document.getElementById(`status-${user.id_two}`).textContent =
+    "✅ Message + Push sent.";
+};
 
           userList.appendChild(wrapper);
         });
