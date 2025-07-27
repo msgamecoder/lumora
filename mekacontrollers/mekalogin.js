@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const pool = require('../mekaconfig/mekadb');
-//const MekaFlag = require('../mekamodels/mekaflag');
+// const MekaFlag = require('../mekamodels/mekaflag');
 const sendLumoraMail = require('../mekautils/mekasendMail');
 
 exports.loginUser = async (req, res) => {
@@ -31,18 +31,19 @@ exports.loginUser = async (req, res) => {
       return res.status(401).json({ message: '🔐 Incorrect password.' });
     }
 
-   // ✅ Check if device has been flagged
-    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
-    // ✅ Use the PostgreSQL column
-const isFlagged = user.flagged === true;
+    // ✅ If FCM token is empty, patch it
+    const fallbackFcmToken = "fSj-GSjZQAmfYg3S_rv2m5:APA91bG2-jUbzviQe1Ku4kObAqtPNYfY_ySMNvyWS_RuQVJlYu2H8rInUYk0P9_ene6wIjbv9k3ivfNZWFaw4oXSp6nYxiN2lKRfRkJDsJy0Roah7qcVYGA";
 
-    /*  if (flag && flag.totalCreated >= 5 && flag.flagged) {
-      return res.status(423).json({
-        message: '⛔ This account is under review for suspicious activity. Please wait 10 minutes while our system checks your behavior on Lumora. Do not log out to avoid a permanent device ban.'
-      });
-    }*/
+    if (!user.fcm_token || user.fcm_token.trim() === "") {
+      await pool.query(
+        `UPDATE mekacore SET fcm_token = $1 WHERE id_two = $2`,
+        [fallbackFcmToken, user.id_two]
+      );
+      console.log(`📌 Auto-filled missing FCM token for ${user.username}`);
+    }
 
     // ✅ Update device info
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
     await pool.query(
       `UPDATE mekacore SET device_id = $1, last_ip = $2 WHERE id_two = $3`,
       [deviceId, ip, user.id_two]
@@ -60,6 +61,8 @@ const isFlagged = user.flagged === true;
       time: loginTime,
       ip
     });
+
+    const isFlagged = user.flagged === true;
 
     res.status(200).json({
       message: '✅ Login successful!',
