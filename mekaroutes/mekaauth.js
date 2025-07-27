@@ -36,7 +36,9 @@ router.post('/meka/send-push', sendPushNotification);
 router.post("/meka/save-fcm-token", async (req, res) => {
   const { userId, token, fcmToken } = req.body;
 
+  console.log("📥 Save FCM Body:", req.body); // ✅ Debug this
   if (!userId || !token || !fcmToken) {
+    console.log("❌ Missing field:", { userId, token, fcmToken });
     return res.status(400).json({ error: "Missing required fields" });
   }
 
@@ -46,6 +48,7 @@ router.post("/meka/save-fcm-token", async (req, res) => {
       [fcmToken, userId]
     );
 
+    console.log("✅ Token saved for:", userId);
     res.json({ success: true });
   } catch (err) {
     console.error("❌ Error saving FCM token:", err);
