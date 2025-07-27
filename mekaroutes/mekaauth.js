@@ -42,7 +42,7 @@ router.post("/meka/save-fcm-token", async (req, res) => {
 
   try {
     const result = await pool.query(
-      `UPDATE mekacore SET fcm_token = $1 WHERE internal_id = $2`,
+      `UPDATE mekacore SET fcm_token = $1 WHERE id_two = $2`,
       [fcmToken, userId]
     );
 
