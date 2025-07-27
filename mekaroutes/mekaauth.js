@@ -33,27 +33,4 @@ router.post('/meka/check-token', checkTokenValidity);
 router.post("/meka/ban-on-review-logout", banOnReviewLogout);
 router.post('/meka/send-push', sendPushNotification);
 
-router.post("/meka/save-fcm-token", async (req, res) => {
-  const { userId, fcmToken } = req.body;
-
-  console.log("📥 Save FCM Body:", req.body);
-  if (!userId || !fcmToken) {
-    console.log("❌ Missing field:", { userId, fcmToken });
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  try {
-    await pool.query(
-      `UPDATE mekacore SET fcm_token = $1 WHERE id_two = $2`,
-      [fcmToken, userId]
-    );
-
-    console.log("✅ FCM Token saved for:", userId);
-    res.json({ success: true });
-  } catch (err) {
-    console.error("❌ Error saving FCM token:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
 module.exports = router;
