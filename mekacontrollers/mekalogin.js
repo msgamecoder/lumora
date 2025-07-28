@@ -92,6 +92,8 @@ exports.loginUser = async (req, res) => {
         id: user.id_one,
         internalId: user.id_two,
         username: user.username,
+        firstName: user.first_name,
+        lastName: user.last_name,
         email: user.email,
         world: user.world,
         profileImage: user.profile_image,
