@@ -16,6 +16,7 @@ const forgotController = require('../mekacontrollers/mekaforgotController');
 const { checkTokenValidity } = require('../mekacontrollers/mekacheckToken');
 const { banOnReviewLogout } = require('../mekacontrollers/mekaban');
 const { sendPushNotification } = require('../mekacontrollers/mekafcm');
+const { verifyToken } = require('../mekamiddleware/mekaauth');
 
 router.post('/meka/register', registerUser);
 router.post('/meka/verify', verifyUser);
@@ -34,8 +35,7 @@ router.post("/meka/ban-on-review-logout", banOnReviewLogout);
 router.post('/meka/send-push', sendPushNotification);
 
 router.post('/meka/save-fcm', async (req, res) => {
-  const { fcmToken } = req.body;
-  const userId = req.user?.id; // from token, if you're using auth middleware
+  const { fcmToken, userId } = req.body;
 
   if (!userId || !fcmToken) {
     return res.status(400).json({ message: 'Missing user or FCM token' });
