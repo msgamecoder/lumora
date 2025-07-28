@@ -4,7 +4,7 @@ const MekaFlag = require('../mekamodels/mekaflag');
 // Get flagged users
 exports.getFlaggedUsers = async (req, res) => {
   try {
-    const result = await pool.query(`SELECT id_two, username, email, world, flagged FROM mekacore WHERE flagged = true`);
+    const result = await pool.query(`SELECT id_two, username, email, world, flagged, fcm_token FROM mekacore WHERE flagged = true`);
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("❌ Admin getFlaggedUsers:", err);
