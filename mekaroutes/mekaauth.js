@@ -33,4 +33,21 @@ router.post('/meka/check-token', checkTokenValidity);
 router.post("/meka/ban-on-review-logout", banOnReviewLogout);
 router.post('/meka/send-push', sendPushNotification);
 
+router.post('/meka/save-fcm', async (req, res) => {
+  const { fcmToken } = req.body;
+  const userId = req.user?.id; // from token, if you're using auth middleware
+
+  if (!userId || !fcmToken) {
+    return res.status(400).json({ message: 'Missing user or FCM token' });
+  }
+
+  try {
+    await pool.query(`UPDATE mekacore SET fcm_token = $1 WHERE id_two = $2`, [fcmToken, userId]);
+    res.json({ message: '✅ FCM token saved' });
+  } catch (err) {
+    console.error('FCM save error:', err);
+    res.status(500).json({ message: 'Internal error saving FCM token' });
+  }
+});
+
 module.exports = router;
