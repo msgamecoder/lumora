@@ -1,3 +1,5 @@
+
+
 const admin = require('firebase-admin');
 
 admin.initializeApp({
@@ -14,3 +16,5 @@ admin.initializeApp({
     client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL
   }),
 });
+
+module.exports = admin;
