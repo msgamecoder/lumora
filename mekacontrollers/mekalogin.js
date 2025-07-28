@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const pool = require('../mekaconfig/mekadb');
 // const MekaFlag = require('../mekamodels/mekaflag');
 const sendLumoraMail = require('../mekautils/mekasendMail');
+const admin = require('../mekaconfig/mekafirebase'); // ✅ at the top if not added
 
 exports.loginUser = async (req, res) => {
   try {
@@ -61,7 +62,27 @@ exports.loginUser = async (req, res) => {
       time: loginTime,
       ip
     });
+    
+   if (user.fcm_token) {
+  const pushMessage = {
+    token: user.fcm_token,
+    notification: {
+      title: '✅ Lumora Login',
+      body: `You just logged in\nTime: ${loginTime}\nIP: ${ip}`
+    },
+    data: {
+      type: 'login',
+      screen: 'dashboard'
+    }
+  };
 
+  try {
+    await admin.messaging().send(pushMessage);
+    console.log("📤 FCM login push sent.");
+  } catch (pushErr) {
+    console.error("❌ Failed to send login push:", pushErr);
+  }
+}
     const isFlagged = user.flagged === true;
 
     res.status(200).json({
