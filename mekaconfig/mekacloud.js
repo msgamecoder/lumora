@@ -1,5 +1,5 @@
 // mekaconfig/mekacloud.js
-import { v2 as cloudinary } from 'cloudinary';
+const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({
   cloud_name: 'dlkiew9d3',
@@ -7,4 +7,4 @@ cloudinary.config({
   api_secret: 'oKosddorVXFvD65oiuNMJwkAZ0U',
 });
 
-export default cloudinary;
+module.exports = cloudinary;
