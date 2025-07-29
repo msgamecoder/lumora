@@ -1,5 +1,5 @@
 const cloudinary = require('../mekaconfig/mekacloud');
-const db = require('../mekaconfig/mekadb'); // PostgreSQL connection
+const db = require('../mekaconfig/mekadb');
 const multer = require('multer');
 
 const storage = multer.memoryStorage();
@@ -8,6 +8,12 @@ const uploadMiddleware = multer({ storage }).single('image');
 const uploadProfileImage = async (req, res) => {
   try {
     const file = req.file;
+    const { internalId } = req.body;
+
+    if (!internalId) {
+      return res.status(400).json({ ok: false, message: "User internal ID (id_two) required" });
+    }
+
     if (!file || !file.mimetype.match(/^image\/(png|jpg|jpeg)$/)) {
       return res.status(400).json({ ok: false, message: "Only PNG and JPG allowed" });
     }
@@ -15,16 +21,26 @@ const uploadProfileImage = async (req, res) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: 'profile_image',
-        public_id: 'me',
+        public_id: 'me_' + internalId,
         overwrite: true,
         resource_type: 'image'
       },
-      (err, result) => {
+      async (err, result) => {
         if (err) {
           console.error('❌ Cloudinary error:', err);
           return res.status(500).json({ ok: false, message: 'Upload failed' });
         }
-        return res.status(200).json({ ok: true, imageUrl: result.secure_url });
+
+        try {
+          await db.query(
+            'UPDATE mekacore SET profile_image = $1 WHERE id_two = $2',
+            [result.secure_url, internalId]
+          );
+          return res.status(200).json({ ok: true, imageUrl: result.secure_url });
+        } catch (dbErr) {
+          console.error('❌ DB save error:', dbErr);
+          return res.status(500).json({ ok: false, message: 'Cloudinary saved, DB failed' });
+        }
       }
     );
 
@@ -37,12 +53,13 @@ const uploadProfileImage = async (req, res) => {
 
 const fetchProfileInfo = async (req, res) => {
   try {
-    const { userId } = req.body;
-    if (!userId) return res.status(400).json({ ok: false, message: "User ID required" });
+    const { internalId } = req.body;
+
+    if (!internalId) return res.status(400).json({ ok: false, message: "User internal ID (id_two) required" });
 
     const result = await db.query(
-      "SELECT username, email, profile_image FROM mekacore WHERE id = $1",
-      [userId]
+      "SELECT username, email, profile_image FROM mekacore WHERE id_two = $1",
+      [internalId]
     );
 
     if (result.rows.length === 0) {
@@ -56,7 +73,6 @@ const fetchProfileInfo = async (req, res) => {
   }
 };
 
-// Export all
 module.exports = {
   uploadMiddleware,
   uploadProfileImage,
