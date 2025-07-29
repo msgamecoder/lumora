@@ -41,7 +41,7 @@ const fetchProfileInfo = async (req, res) => {
     if (!userId) return res.status(400).json({ ok: false, message: "User ID required" });
 
     const result = await db.query(
-      "SELECT username, email, profile_image FROM users WHERE id = $1",
+      "SELECT username, email, profile_image FROM mekacore WHERE id = $1",
       [userId]
     );
 
