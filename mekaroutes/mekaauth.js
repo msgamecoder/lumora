@@ -12,6 +12,11 @@ const {
   checkEmail,
   checkPhone
 } = require('../mekacontrollers/mekaauthCheck');
+const {
+  uploadMiddleware,
+  uploadProfileImage,
+  fetchProfileInfo
+} = require('../mekacontrollers/profileController');
 const forgotController = require('../mekacontrollers/mekaforgotController');
 const { checkTokenValidity } = require('../mekacontrollers/mekacheckToken');
 const { banOnReviewLogout } = require('../mekacontrollers/mekaban');
@@ -33,6 +38,8 @@ router.post('/meka/check-token', checkTokenValidity);
 
 router.post("/meka/ban-on-review-logout", banOnReviewLogout);
 router.post('/meka/send-push', sendPushNotification);
+router.post("/meka/upload-profile", uploadMiddleware, uploadProfileImage);
+router.post("/meka/profile-info", fetchProfileInfo);
 
 router.post('/meka/save-fcm', async (req, res) => {
   const { fcmToken, userId } = req.body;
