@@ -1,6 +1,7 @@
 // mekaroutes/auth.js
 const express = require('express');
 const router = express.Router();
+const pool = require('../mekaconfig/mekadb');
 const {
   registerUser,
   verifyUser,
