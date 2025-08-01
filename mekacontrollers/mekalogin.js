@@ -38,7 +38,7 @@ exports.loginUser = async (req, res) => {
 }
 
     // ✅ If FCM token is empty, patch it
-    const fallbackFcmToken = "fSj-GSjZQAmfYg3S_rv2m5:APA91bG2-jUbzviQe1Ku4kObAqtPNYfY_ySMNvyWS_RuQVJlYu2H8rInUYk0P9_ene6wIjbv9k3ivfNZWFaw4oXSp6nYxiN2lKRfRkJDsJy0Roah7qcVYGA";
+   /* const fallbackFcmToken = "fSj-GSjZQAmfYg3S_rv2m5:APA91bG2-jUbzviQe1Ku4kObAqtPNYfY_ySMNvyWS_RuQVJlYu2H8rInUYk0P9_ene6wIjbv9k3ivfNZWFaw4oXSp6nYxiN2lKRfRkJDsJy0Roah7qcVYGA";
 
     if (!user.fcm_token || user.fcm_token.trim() === "") {
       await pool.query(
@@ -46,7 +46,7 @@ exports.loginUser = async (req, res) => {
         [fallbackFcmToken, user.id_two]
       );
       console.log(`📌 Auto-filled missing FCM token for ${user.username}`);
-    }
+    }*/
 
     // ✅ Update device info
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
