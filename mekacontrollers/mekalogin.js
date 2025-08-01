@@ -7,7 +7,7 @@ const admin = require('../mekaconfig/mekafirebase'); // ✅ at the top if not ad
 
 exports.loginUser = async (req, res) => {
   try {
-    const { identifier, password, deviceId } = req.body;
+    const { identifier, password, deviceId, fcmToken } = req.body;
 
     if (!identifier || !password || !deviceId) {
       return res.status(400).json({ message: '🚨 Please enter identifier, password, and device ID.' });
@@ -31,6 +31,11 @@ exports.loginUser = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: '🔐 Incorrect password.' });
     }
+
+    if (fcmToken && fcmToken !== user.fcm_token) {
+  await pool.query(`UPDATE mekacore SET fcm_token = $1 WHERE id_two = $2`, [fcmToken, user.id_two]);
+  console.log("🔁 FCM token updated during login.");
+}
 
     // ✅ If FCM token is empty, patch it
     const fallbackFcmToken = "fSj-GSjZQAmfYg3S_rv2m5:APA91bG2-jUbzviQe1Ku4kObAqtPNYfY_ySMNvyWS_RuQVJlYu2H8rInUYk0P9_ene6wIjbv9k3ivfNZWFaw4oXSp6nYxiN2lKRfRkJDsJy0Roah7qcVYGA";
