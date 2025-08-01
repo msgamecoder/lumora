@@ -227,6 +227,35 @@ exports.toggleNotifications = async (req, res) => {
   }
 };
 
+exports.getUserSessions = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const result = await db.query(
+      `SELECT device_id, ip_address, user_agent, login_time
+       FROM mekasessions WHERE user_id = $1 ORDER BY login_time DESC LIMIT 15`,
+      [userId]
+    );
+
+    res.json({ sessions: result.rows });
+  } catch (err) {
+    console.error("❌ getUserSessions error:", err);
+    res.status(500).json({ message: "🔥 Internal error fetching sessions" });
+  }
+};
+
+exports.clearUserSessions = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    await db.query(`DELETE FROM mekasessions WHERE user_id = $1`, [userId]);
+    res.json({ message: "🧹 All sessions cleared." });
+  } catch (err) {
+    console.error("❌ clearUserSessions error:", err);
+    res.status(500).json({ message: "🔥 Error clearing sessions." });
+  }
+};
+
 module.exports = {
   uploadMiddleware,
   uploadProfileImage,
