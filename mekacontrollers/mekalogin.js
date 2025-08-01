@@ -35,6 +35,7 @@ exports.loginUser = async (req, res) => {
     if (fcmToken && fcmToken !== user.fcm_token) {
   await pool.query(`UPDATE mekacore SET fcm_token = $1 WHERE id_two = $2`, [fcmToken, user.id_two]);
   console.log("🔁 FCM token updated during login.");
+      user.fcm_token = fcmToken;
 }
 
     // ✅ If FCM token is empty, patch it
