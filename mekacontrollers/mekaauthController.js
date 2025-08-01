@@ -136,7 +136,7 @@ exports.verifyUser = async (req, res) => {
     try {
 const count = await MekaFlag.countDocuments({ deviceId, ip });
 
-if (count >= 1) {
+if (count >= 5) {
   await MekaFlag.create({
     userId: savedUser.id_two,
     deviceId,
