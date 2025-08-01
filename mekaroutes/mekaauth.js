@@ -44,12 +44,18 @@ router.post("/meka/profile-info", fetchProfileInfo);
 router.post('/meka/save-fcm', async (req, res) => {
   const { fcmToken, userId } = req.body;
 
+  // 👇 Add this to debug what’s coming in
+  console.log("📥 /meka/save-fcm called:");
+  console.log("➡️ userId:", userId);
+  console.log("➡️ fcmToken:", fcmToken);
+
   if (!userId || !fcmToken) {
     return res.status(400).json({ message: 'Missing user or FCM token' });
   }
 
   try {
     await pool.query(`UPDATE mekacore SET fcm_token = $1 WHERE id_two = $2`, [fcmToken, userId]);
+    console.log("✅ FCM token updated in DB.");
     res.json({ message: '✅ FCM token saved' });
   } catch (err) {
     console.error('FCM save error:', err);
