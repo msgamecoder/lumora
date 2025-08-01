@@ -18,7 +18,8 @@ const {
   uploadProfileImage,
   fetchProfileInfo,
   updateProfileInfo,
-  changePassword
+  changePassword,
+  toggleNotifications
 } = require('../mekacontrollers/profileController');
 const forgotController = require('../mekacontrollers/mekaforgotController');
 const { checkTokenValidity } = require('../mekacontrollers/mekacheckToken');
@@ -45,6 +46,7 @@ router.post("/meka/upload-profile", uploadMiddleware, uploadProfileImage);
 router.post("/meka/profile-info", fetchProfileInfo);
 router.post("/meka/update-profile", verifyToken, updateProfileInfo);
 router.post("/meka/change-password", verifyToken, changePassword);
+router.post("/meka/toggle-notifications", verifyToken, toggleNotifications);
 
 router.post('/meka/save-fcm', async (req, res) => {
   const { fcmToken, userId } = req.body;
