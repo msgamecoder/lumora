@@ -1,6 +1,14 @@
 const cloudinary = require('../mekaconfig/mekacloud');
 const db = require('../mekaconfig/mekadb');
 const multer = require('multer');
+const {
+  isValidName,
+  isValidUsername,
+  isValidEmail,
+  isValidPhone,
+  isValidWorld,
+  isValidPassword
+} = require('../mekautils/validators');
 
 const storage = multer.memoryStorage();
 const uploadMiddleware = multer({ storage }).single('image');
@@ -72,8 +80,6 @@ const fetchProfileInfo = async (req, res) => {
     res.status(500).json({ ok: false, message: "Something went wrong" });
   }
 };
-
-const { isValidName, isValidUsername, isValidEmail, isValidPhone, isValidWorld } = require('../mekautils/validators');
 
 exports.updateProfileInfo = async (req, res) => {
   const userId = req.user.id;
