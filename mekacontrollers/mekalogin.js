@@ -63,7 +63,7 @@ exports.loginUser = async (req, res) => {
       ip
     });
     
-   if (user.fcm_token) {
+if (user.fcm_token) {
   const pushMessage = {
     token: user.fcm_token,
     notification: {
@@ -81,6 +81,12 @@ exports.loginUser = async (req, res) => {
     console.log("📤 FCM login push sent.");
   } catch (pushErr) {
     console.error("❌ Failed to send login push:", pushErr);
+
+    // ✅ Handle expired or unregistered token
+    if (pushErr.code === 'messaging/registration-token-not-registered') {
+      console.warn("🧹 Token is invalid. Removing from database...");
+      await pool.query(`UPDATE mekacore SET fcm_token = NULL WHERE id_two = $1`, [user.id_two]);
+    }
   }
 }
     const isFlagged = user.flagged === true;
