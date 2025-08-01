@@ -73,6 +73,84 @@ const fetchProfileInfo = async (req, res) => {
   }
 };
 
+const { isValidName, isValidUsername, isValidEmail, isValidPhone, isValidWorld } = require('../mekautils/validators');
+
+exports.updateProfileInfo = async (req, res) => {
+  const userId = req.user.id;
+  const { firstName, lastName, username, email, phone, world } = req.body;
+
+  if (!userId) return res.status(400).json({ message: 'Missing user ID' });
+
+  const updates = [];
+  const values = [];
+  let i = 1;
+
+  try {
+    // ✅ Conditionally validate and prepare update
+    if (firstName !== undefined) {
+      if (!isValidName(firstName)) return res.status(400).json({ message: '❌ First name must be only letters (max 33).' });
+      updates.push(`first_name = $${i++}`);
+      values.push(firstName);
+    }
+
+    if (lastName !== undefined) {
+      if (!isValidName(lastName)) return res.status(400).json({ message: '❌ Last name must be only letters (max 33).' });
+      updates.push(`last_name = $${i++}`);
+      values.push(lastName);
+    }
+
+    if (username !== undefined) {
+      if (!isValidUsername(username)) return res.status(400).json({ message: '❌ Invalid username format.' });
+
+      const userCheck = await db.query(`SELECT id_two FROM mekacore WHERE username = $1 AND id_two != $2`, [username, userId]);
+      if (userCheck.rows.length > 0) return res.status(409).json({ message: '❌ Username already taken.' });
+
+      updates.push(`username = $${i++}`);
+      values.push(username);
+    }
+
+    if (email !== undefined) {
+      if (!isValidEmail(email)) return res.status(400).json({ message: '📧 Invalid email format.' });
+
+      const emailCheck = await db.query(`SELECT id_two FROM mekacore WHERE email = $1 AND id_two != $2`, [email, userId]);
+      if (emailCheck.rows.length > 0) return res.status(409).json({ message: '❌ Email already in use.' });
+
+      updates.push(`email = $${i++}`);
+      values.push(email.toLowerCase());
+    }
+
+    if (phone !== undefined) {
+      if (!isValidPhone(phone)) return res.status(400).json({ message: '📱 Invalid phone number.' });
+
+      const phoneCheck = await db.query(`SELECT id_two FROM mekacore WHERE phone = $1 AND id_two != $2`, [phone, userId]);
+      if (phoneCheck.rows.length > 0) return res.status(409).json({ message: '❌ Phone number already in use.' });
+
+      updates.push(`phone = $${i++}`);
+      values.push(phone.trim());
+    }
+
+    if (world !== undefined) {
+      if (!['one', 'two'].includes(world)) return res.status(400).json({ message: '🌍 Invalid world: one or two only.' });
+      updates.push(`world = $${i++}`);
+      values.push(world);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ message: '⚠️ No valid fields provided for update.' });
+    }
+
+    values.push(userId); // for WHERE clause
+    const query = `UPDATE mekacore SET ${updates.join(', ')} WHERE id_two = $${i}`;
+    await db.query(query, values);
+
+    res.json({ message: "✅ Profile updated." });
+
+  } catch (err) {
+    console.error("❌ Profile update error:", err);
+    res.status(500).json({ message: "🔥 Internal server error." });
+  }
+};
+
 module.exports = {
   uploadMiddleware,
   uploadProfileImage,
