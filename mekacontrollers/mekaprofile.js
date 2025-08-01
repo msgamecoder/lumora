@@ -207,10 +207,31 @@ exports.changePassword = async (req, res) => {
   }
 };
 
+exports.toggleNotifications = async (req, res) => {
+  const userId = req.user.id;
+  const { enabled } = req.body;
+
+  if (typeof enabled !== 'boolean') {
+    return res.status(400).json({ message: '❗ Expected "enabled" to be true or false.' });
+  }
+
+  try {
+    await db.query(
+      `UPDATE mekacore SET notifications_enabled = $1 WHERE id_two = $2`,
+      [enabled, userId]
+    );
+    res.json({ message: `✅ Notifications ${enabled ? 'enabled' : 'disabled'}.` });
+  } catch (err) {
+    console.error("❌ toggleNotifications error:", err);
+    res.status(500).json({ message: "🔥 Internal server error." });
+  }
+};
+
 module.exports = {
   uploadMiddleware,
   uploadProfileImage,
   fetchProfileInfo,
   updateProfileInfo,
-  changePassword
+  changePassword,
+  toggleNotifications
 };
