@@ -262,5 +262,7 @@ module.exports = {
   fetchProfileInfo,
   updateProfileInfo,
   changePassword,
-  toggleNotifications
+  toggleNotifications,
+  getUserSessions,
+  clearUserSessions
 };
