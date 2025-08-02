@@ -256,6 +256,29 @@ exports.clearUserSessions = async (req, res) => {
   }
 };
 
+exports.deleteSingleSession = async (req, res) => {
+  const userId = req.user.id;
+  const { sessionId } = req.body;
+
+  if (!sessionId) return res.status(400).json({ message: '⚠️ Session ID is required' });
+
+  try {
+    const result = await db.query(
+      `DELETE FROM mekasessions WHERE id = $1 AND user_id = $2`,
+      [sessionId, userId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "❌ Session not found or already deleted." });
+    }
+
+    res.json({ message: "✅ Session deleted." });
+  } catch (err) {
+    console.error("❌ deleteSingleSession error:", err);
+    res.status(500).json({ message: "🔥 Server error deleting session" });
+  }
+};
+
 module.exports = {
   uploadMiddleware,
   uploadProfileImage,
@@ -264,5 +287,6 @@ module.exports = {
   changePassword,
   toggleNotifications,
   getUserSessions,
-  clearUserSessions
+  clearUserSessions,
+  deleteSingleSession
 };
