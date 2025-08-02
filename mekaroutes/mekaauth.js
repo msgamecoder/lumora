@@ -29,6 +29,7 @@ const { checkTokenValidity } = require('../mekacontrollers/mekacheckToken');
 const { banOnReviewLogout } = require('../mekacontrollers/mekaban');
 const { sendPushNotification } = require('../mekacontrollers/mekafcm');
 const { verifyToken } = require('../mekamiddleware/mekaauth');
+const { initTwoFA, sendTwoFACode } = require('../mekacontrollers/mekatwofa');
 
 router.post('/meka/register', registerUser);
 router.post('/meka/verify', verifyUser);
@@ -53,6 +54,8 @@ router.post("/meka/toggle-notifications", verifyToken, toggleNotifications);
 router.post("/meka/sessions", verifyToken, getUserSessions);
 router.post("/meka/clear-sessions", verifyToken, clearUserSessions);
 router.post("/meka/delete-session", verifyToken, deleteSingleSession);
+router.post('/meka/send-2fa-code', sendTwoFACode);
+router.post('/meka/init-2fa', verifyToken, initTwoFA);
 
 router.post('/meka/save-fcm', async (req, res) => {
   const { fcmToken, userId } = req.body;
@@ -77,3 +80,4 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
+
