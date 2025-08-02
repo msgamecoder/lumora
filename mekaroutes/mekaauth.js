@@ -21,8 +21,9 @@ const {
   changePassword,
   toggleNotifications,
   getUserSessions,
-  clearUserSessions
-} = require('../mekacontrollers/profileController');
+  clearUserSessions,
+  deleteSingleSession
+} = require('../mekacontrollers/mekaprofile');
 const forgotController = require('../mekacontrollers/mekaforgotController');
 const { checkTokenValidity } = require('../mekacontrollers/mekacheckToken');
 const { banOnReviewLogout } = require('../mekacontrollers/mekaban');
@@ -51,6 +52,7 @@ router.post("/meka/change-password", verifyToken, changePassword);
 router.post("/meka/toggle-notifications", verifyToken, toggleNotifications);
 router.post("/meka/sessions", verifyToken, getUserSessions);
 router.post("/meka/clear-sessions", verifyToken, clearUserSessions);
+router.post("/meka/delete-session", verifyToken, deleteSingleSession);
 
 router.post('/meka/save-fcm', async (req, res) => {
   const { fcmToken, userId } = req.body;
