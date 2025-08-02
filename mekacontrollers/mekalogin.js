@@ -62,6 +62,11 @@ exports.loginUser = async (req, res) => {
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
     await pool.query(`UPDATE mekacore SET device_id = $1, last_ip = $2 WHERE id_two = $3`, [deviceId, ip, user.id_two]);
 
+    await pool.query(
+  `INSERT INTO mekaloginhistory (user_id, ip, location) VALUES ($1, $2, $3)`,
+  [user.id_two, ip, null] // Add location later if you want
+);
+
     const token = jwt.sign({ id: user.id_two }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     const isFlagged = user.flagged === true;
@@ -87,3 +92,4 @@ exports.loginUser = async (req, res) => {
     return res.status(500).json({ message: '🔥 Internal server error.' });
   }
 };
+
