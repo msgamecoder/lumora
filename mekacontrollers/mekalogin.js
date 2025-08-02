@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const pool = require('../mekaconfig/mekadb');
-// const MekaFlag = require('../mekamodels/mekaflag');
+const MekaShield = require('../mekamodels/mekashield');
 const sendLumoraMail = require('../mekautils/mekasendMail');
-const admin = require('../mekaconfig/mekafirebase'); // ✅ at the top if not added
+const admin = require('../mekaconfig/mekafirebase');
 
 exports.loginUser = async (req, res) => {
   try {
@@ -28,39 +28,44 @@ exports.loginUser = async (req, res) => {
 
     const user = result.rows[0];
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: '🔐 Incorrect password.' });
+    if (!isMatch) return res.status(401).json({ message: '🔐 Incorrect password.' });
+
+    // ✅ Handle FCM token update
+    if (fcmToken && fcmToken !== user.fcm_token) {
+      await pool.query(`UPDATE mekacore SET fcm_token = $1 WHERE id_two = $2`, [fcmToken, user.id_two]);
+      user.fcm_token = fcmToken;
     }
 
-    if (fcmToken && fcmToken !== user.fcm_token) {
-  await pool.query(`UPDATE mekacore SET fcm_token = $1 WHERE id_two = $2`, [fcmToken, user.id_two]);
-  console.log("🔁 FCM token updated during login.");
-      user.fcm_token = fcmToken;
-}
+    // ✅ Check if 2FA is required
+    if (user.twofa_enabled) {
+      const deviceTrusted = user.device_id === deviceId;
+      if (!deviceTrusted) {
+        // Send email code
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        await MekaShield.deleteMany({ userId: user.id_two }); // clean previous
+        await MekaShield.create({
+          userId: user.id_two,
+          code,
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 mins
+        });
 
-    // ✅ If FCM token is empty, patch it
-   /* const fallbackFcmToken = "fSj-GSjZQAmfYg3S_rv2m5:APA91bG2-jUbzviQe1Ku4kObAqtPNYfY_ySMNvyWS_RuQVJlYu2H8rInUYk0P9_ene6wIjbv9k3ivfNZWFaw4oXSp6nYxiN2lKRfRkJDsJy0Roah7qcVYGA";
+        await sendLumoraMail(user.email, code, "2fa", { username: user.username });
 
-    if (!user.fcm_token || user.fcm_token.trim() === "") {
-      await pool.query(
-        `UPDATE mekacore SET fcm_token = $1 WHERE id_two = $2`,
-        [fallbackFcmToken, user.id_two]
-      );
-      console.log(`📌 Auto-filled missing FCM token for ${user.username}`);
-    }*/
+        return res.status(200).json({
+          requires2FA: true,
+          message: '📨 2FA required: code sent to your email',
+          userId: user.id_two,
+          email: user.email,
+          username: user.username
+        });
+      }
+    }
 
-    // ✅ Update device info
+    // ✅ Device is trusted or 2FA is off → login now
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
-    await pool.query(
-      `UPDATE mekacore SET device_id = $1, last_ip = $2 WHERE id_two = $3`,
-      [deviceId, ip, user.id_two]
-    );
+    await pool.query(`UPDATE mekacore SET device_id = $1, last_ip = $2 WHERE id_two = $3`, [deviceId, ip, user.id_two]);
 
-    const token = jwt.sign(
-      { id: user.id_two },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = jwt.sign({ id: user.id_two }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     const loginTime = new Date().toUTCString();
     await sendLumoraMail(user.email, null, "login", {
@@ -68,35 +73,30 @@ exports.loginUser = async (req, res) => {
       time: loginTime,
       ip
     });
-    
-// ✅ Check if user allows notifications
-if (user.notifications_enabled && user.fcm_token) {
-  const pushMessage = {
-    token: user.fcm_token,
-    notification: {
-      title: '✅ Lumora Login',
-      body: `You just logged in\nTime: ${loginTime}\nIP: ${ip}`
-    },
-    data: {
-      type: 'login',
-      screen: 'dashboard'
-    }
-  };
 
-  try {
-    await admin.messaging().send(pushMessage);
-    console.log("📤 FCM login push sent.");
-  } catch (pushErr) {
-    console.error("❌ Failed to send login push:", pushErr);
+    // 🔔 Push notification (if allowed)
+    if (user.notifications_enabled && user.fcm_token) {
+      const pushMessage = {
+        token: user.fcm_token,
+        notification: {
+          title: '✅ Lumora Login',
+          body: `You just logged in\nTime: ${loginTime}\nIP: ${ip}`
+        },
+        data: { type: 'login', screen: 'dashboard' }
+      };
 
-    if (pushErr.code === 'messaging/registration-token-not-registered') {
-      await pool.query(`UPDATE mekacore SET fcm_token = NULL WHERE id_two = $1`, [user.id_two]);
+      try {
+        await admin.messaging().send(pushMessage);
+      } catch (pushErr) {
+        if (pushErr.code === 'messaging/registration-token-not-registered') {
+          await pool.query(`UPDATE mekacore SET fcm_token = NULL WHERE id_two = $1`, [user.id_two]);
+        }
+      }
     }
-  }
-}
+
     const isFlagged = user.flagged === true;
 
-    res.status(200).json({
+    return res.status(200).json({
       message: '✅ Login successful!',
       token,
       user: {
@@ -114,6 +114,6 @@ if (user.notifications_enabled && user.fcm_token) {
 
   } catch (err) {
     console.error('Login error:', err);
-    res.status(500).json({ message: '🔥 Internal server error.' });
+    return res.status(500).json({ message: '🔥 Internal server error.' });
   }
 };
