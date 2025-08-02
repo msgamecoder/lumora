@@ -140,3 +140,49 @@ exports.setTimezone = async (req, res) => {
     res.status(500).json({ message: "🔥 Failed to update timezone" });
   }
 };
+
+exports.updateBio = async (req, res) => {
+  const userId = req.meka.id;
+  let { bio } = req.body;
+
+  if (!bio || typeof bio !== 'string') {
+    return res.status(400).json({ message: '❌ Invalid bio input.' });
+  }
+
+  bio = bio.trim();
+
+  // Enforce Lumora presence
+  if (!bio.toLowerCase().includes('lumora')) {
+    return res.status(400).json({ message: '❌ Bio must mention Lumora 🔮' });
+  }
+
+  // Block links and spammy domains
+  const forbiddenPatterns = [
+    /https?:\/\//i,
+    /www\./i,
+    /\.com/i,
+    /\.net/i,
+    /\.org/i,
+    /pornhub/i,
+    /xvideos/i,
+    /onlyfans/i,
+    /tiktok/i,
+    /snapchat/i
+  ];
+
+  if (forbiddenPatterns.some(rx => rx.test(bio))) {
+    return res.status(400).json({ message: '🚫 Links or forbidden words are not allowed in bio.' });
+  }
+
+  if (bio.length > 300) {
+    return res.status(400).json({ message: '❗Bio must be under 300 characters.' });
+  }
+
+  try {
+    await pool.query(`UPDATE mekacore SET bio = $1 WHERE id_two = $2`, [bio, userId]);
+    res.status(200).json({ message: '✅ Bio updated successfully.' });
+  } catch (err) {
+    console.error("Bio update error:", err);
+    res.status(500).json({ message: '🔥 Failed to update bio.' });
+  }
+};
