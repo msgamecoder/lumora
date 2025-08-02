@@ -2,6 +2,9 @@
 const pool = require("../mekaconfig/mekadb");
 const MekaShield = require('../mekamodels/mekashield'); // reuse
 const sendLumoraMail = require('../mekautils/mekasendMail');
+const fs = require("fs");
+const path = require("path");
+const archiver = require("archiver");
 
 exports.suspendAccount = async (req, res) => {
   const userId = req.meka.id;
@@ -184,5 +187,54 @@ exports.updateBio = async (req, res) => {
   } catch (err) {
     console.error("Bio update error:", err);
     res.status(500).json({ message: '🔥 Failed to update bio.' });
+  }
+};
+
+exports.downloadMyData = async (req, res) => {
+  const userId = req.meka.id;
+
+  try {
+    // Get user details
+    const result = await pool.query(`SELECT * FROM mekacore WHERE id_two = $1`, [userId]);
+    if (result.rows.length === 0) return res.status(404).json({ message: "User not found" });
+
+    const user = result.rows[0];
+    delete user.password;
+
+    // Generate JSON
+    const jsonData = JSON.stringify(user, null, 2);
+    const tempDir = path.join(__dirname, "..", "temp");
+    const filename = `lumora_userdata_${user.username}.json`;
+    const filepath = path.join(tempDir, filename);
+
+    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
+    fs.writeFileSync(filepath, jsonData);
+
+    // Create ZIP
+    const zipName = `lumora_userdata_${user.username}.zip`;
+    const zipPath = path.join(tempDir, zipName);
+    const output = fs.createWriteStream(zipPath);
+    const archive = archiver("zip", { zlib: { level: 9 } });
+
+    output.on("close", () => {
+      res.download(zipPath, zipName, () => {
+        // Cleanup after download
+        fs.unlinkSync(filepath);
+        fs.unlinkSync(zipPath);
+      });
+    });
+
+    archive.on("error", err => {
+      console.error("ZIP error:", err);
+      res.status(500).json({ message: "Failed to generate ZIP" });
+    });
+
+    archive.pipe(output);
+    archive.file(filepath, { name: filename });
+    archive.finalize();
+
+  } catch (err) {
+    console.error("Download data error:", err);
+    res.status(500).json({ message: "Failed to generate user data export" });
   }
 };
