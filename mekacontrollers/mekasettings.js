@@ -119,3 +119,24 @@ exports.getLoginHistory = async (req, res) => {
     res.status(500).json({ message: "🔥 Failed to fetch login history." });
   }
 };
+
+exports.setTimezone = async (req, res) => {
+  const userId = req.meka.id;
+  const { timezone } = req.body;
+
+  if (!timezone) {
+    return res.status(400).json({ message: '🕓 Timezone is required' });
+  }
+
+  try {
+    await pool.query(
+      `UPDATE mekacore SET timezone = $1 WHERE id_two = $2`,
+      [timezone, userId]
+    );
+
+    res.json({ message: `✅ Timezone updated to ${timezone}` });
+  } catch (err) {
+    console.error("Timezone update error:", err);
+    res.status(500).json({ message: "🔥 Failed to update timezone" });
+  }
+};
