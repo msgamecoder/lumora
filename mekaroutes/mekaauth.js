@@ -32,7 +32,7 @@ const verifyToken = require('../mekamiddleware/mekaauth');
 const { initTwoFA, sendTwoFACode, verifyTwoFACode } = require('../mekacontrollers/mekatwofa');
 const { regenerateBackupCodes } = require('../mekacontrollers/mekatwofa');
 const { verifyLogin2FA } = require('../mekacontrollers/verifyLogin2FA');
-const { reactivateAccount, suspendAccount } = require('../mekacontrollers/mekasettings');
+const { reactivateAccount, suspendAccount, sendDeleteCode, deleteAccount } = require('../mekacontrollers/mekasettings');
 
 router.post('/meka/register', registerUser);
 router.post('/meka/verify', verifyUser);
@@ -64,6 +64,8 @@ router.post('/meka/regenerate-backup-codes', verifyToken, regenerateBackupCodes)
 router.post('/meka/verify-login-2fa', verifyLogin2FA);
 router.post('/meka/reactivate-account', verifyToken, reactivateAccount);
 router.post('/meka/suspend-account', verifyToken, suspendAccount);
+router.post('/meka/send-delete-code', verifyToken, sendDeleteCode);
+router.post('/meka/delete-account', verifyToken, deleteAccount);
 
 router.post('/meka/save-fcm', async (req, res) => {
   const { fcmToken, userId } = req.body;
@@ -88,6 +90,7 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 
