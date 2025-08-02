@@ -100,3 +100,22 @@ exports.deleteAccount = async (req, res) => {
   }
 };
 
+exports.getLoginHistory = async (req, res) => {
+  const userId = req.meka.id;
+
+  try {
+    const result = await pool.query(
+      `SELECT ip, location, time FROM mekaloginhistory WHERE user_id = $1 ORDER BY time DESC LIMIT 20`,
+      [userId]
+    );
+
+    res.status(200).json({
+      message: "✅ Login history fetched.",
+      history: result.rows
+    });
+
+  } catch (err) {
+    console.error("❌ getLoginHistory error:", err);
+    res.status(500).json({ message: "🔥 Failed to fetch login history." });
+  }
+};
