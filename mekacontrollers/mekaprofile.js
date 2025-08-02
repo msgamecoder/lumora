@@ -282,11 +282,5 @@ exports.deleteSingleSession = async (req, res) => {
 module.exports = {
   uploadMiddleware,
   uploadProfileImage,
-  fetchProfileInfo,
-  updateProfileInfo,
-  changePassword,
-  toggleNotifications,
-  getUserSessions,
-  clearUserSessions,
-  deleteSingleSession
+  fetchProfileInfo
 };
