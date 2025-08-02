@@ -60,6 +60,12 @@ exports.verifyLogin2FA = async (req, res) => {
       ip
     });
 
+    // ✅ Save login history
+await db.query(
+  `INSERT INTO mekaloginhistory (user_id, ip, location) VALUES ($1, $2, $3)`,
+  [user.id_two, ip, null]
+);
+
     if (user.notifications_enabled && user.fcm_token) {
       const pushMessage = {
         token: user.fcm_token,
