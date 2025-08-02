@@ -34,6 +34,14 @@ if (user.flagged === true) {
   });
 }
 
+if (user.suspended === true) {
+  return res.status(423).json({
+    ok: false,
+    reason: "suspended",
+    message: "⏸️ Account is suspended. Reactivate to continue."
+  });
+}
+
     delete user.password; // Never expose password
 
     res.status(200).json({
