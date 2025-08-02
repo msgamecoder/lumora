@@ -76,6 +76,19 @@ case "forgot":
       `;
       break;
 
+      case "2fa":
+  subject = "🔐 Your Lumora 2FA Code";
+  html = `
+    <div style="font-family: sans-serif; padding: 1rem;">
+      <p>Hi <b>@${options.username}</b>,</p>
+      <p>Your Lumora Shield verification code is:</p>
+      <h2 style="letter-spacing: 4px; color: #8e2de2;">${payload}</h2>
+      <p>This code expires in 5 minutes. Do not share it with anyone.</p>
+      <p style="font-size: 0.8rem; color: #777;">🔐 Lumora | Shield Login</p>
+    </div>
+  `;
+  break;
+
     default:
       throw new Error("Invalid email type");
   }
@@ -91,3 +104,4 @@ case "forgot":
 };
 
 module.exports = sendLumoraMail;
+
