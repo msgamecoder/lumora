@@ -1,3 +1,4 @@
+// mekalogin.js
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const pool = require('../mekaconfig/mekadb');
@@ -37,62 +38,31 @@ exports.loginUser = async (req, res) => {
     }
 
     // ✅ Check if 2FA is required
-    if (user.twofa_enabled) {
-      const deviceTrusted = user.device_id === deviceId;
-      if (!deviceTrusted) {
-        // Send email code
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        await MekaShield.deleteMany({ userId: user.id_two }); // clean previous
-        await MekaShield.create({
-          userId: user.id_two,
-          code,
-          expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 mins
-        });
+    if (user.twofa_enabled && user.device_id !== deviceId) {
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      await MekaShield.deleteMany({ userId: user.id_two });
+      await MekaShield.create({
+        userId: user.id_two,
+        code,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000)
+      });
 
-        await sendLumoraMail(user.email, code, "2fa", { username: user.username });
+      await sendLumoraMail(user.email, code, "2fa", { username: user.username });
 
-        return res.status(200).json({
-          requires2FA: true,
-          message: '📨 2FA required: code sent to your email',
-          userId: user.id_two,
-          email: user.email,
-          username: user.username
-        });
-      }
+      return res.status(200).json({
+        requires2FA: true,
+        message: '📨 2FA required: code sent to your email',
+        userId: user.id_two,
+        email: user.email,
+        username: user.username
+      });
     }
 
-    // ✅ Device is trusted or 2FA is off → login now
+    // ✅ 2FA not required, continue login
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
     await pool.query(`UPDATE mekacore SET device_id = $1, last_ip = $2 WHERE id_two = $3`, [deviceId, ip, user.id_two]);
 
     const token = jwt.sign({ id: user.id_two }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    const loginTime = new Date().toUTCString();
-    await sendLumoraMail(user.email, null, "login", {
-      username: user.username,
-      time: loginTime,
-      ip
-    });
-
-    // 🔔 Push notification (if allowed)
-    if (user.notifications_enabled && user.fcm_token) {
-      const pushMessage = {
-        token: user.fcm_token,
-        notification: {
-          title: '✅ Lumora Login',
-          body: `You just logged in\nTime: ${loginTime}\nIP: ${ip}`
-        },
-        data: { type: 'login', screen: 'dashboard' }
-      };
-
-      try {
-        await admin.messaging().send(pushMessage);
-      } catch (pushErr) {
-        if (pushErr.code === 'messaging/registration-token-not-registered') {
-          await pool.query(`UPDATE mekacore SET fcm_token = NULL WHERE id_two = $1`, [user.id_two]);
-        }
-      }
-    }
 
     const isFlagged = user.flagged === true;
 
