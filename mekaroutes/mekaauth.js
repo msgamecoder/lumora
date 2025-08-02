@@ -2,17 +2,23 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../mekaconfig/mekadb');
+
+// ⬇️ AUTH CONTROLLERS
 const {
   registerUser,
   verifyUser,
   recoverUnverifiedWithPassword
 } = require('../mekacontrollers/mekaauthController');
+
 const { loginUser } = require('../mekacontrollers/mekalogin');
+
 const {
   checkUsername,
   checkEmail,
   checkPhone
 } = require('../mekacontrollers/mekaauthCheck');
+
+// ⬇️ PROFILE & ACCOUNT SETTINGS
 const {
   uploadMiddleware,
   uploadProfileImage,
@@ -24,17 +30,50 @@ const {
   clearUserSessions,
   deleteSingleSession
 } = require('../mekacontrollers/mekaprofile');
+
+// ⬇️ FORGOT PASSWORD FLOW
 const forgotController = require('../mekacontrollers/mekaforgotController');
+
+// ⬇️ TOKEN VERIFICATION
 const { checkTokenValidity } = require('../mekacontrollers/mekacheckToken');
+
+// ⬇️ BAN & SESSION TERMINATION
 const { banOnReviewLogout } = require('../mekacontrollers/mekaban');
+
+// ⬇️ PUSH NOTIFICATIONS
 const { sendPushNotification } = require('../mekacontrollers/mekafcm');
+
+// ⬇️ MIDDLEWARE
 const verifyToken = require('../mekamiddleware/mekaauth');
-const { initTwoFA, sendTwoFACode, verifyTwoFACode } = require('../mekacontrollers/mekatwofa');
-const { regenerateBackupCodes } = require('../mekacontrollers/mekatwofa');
+
+// ⬇️ 2FA FLOW
+const {
+  initTwoFA,
+  sendTwoFACode,
+  verifyTwoFACode,
+  regenerateBackupCodes
+} = require('../mekacontrollers/mekatwofa');
 const { verifyLogin2FA } = require('../mekacontrollers/verifyLogin2FA');
-const { reactivateAccount, suspendAccount, sendDeleteCode, deleteAccount, getLoginHistory, setTimezone, updateBio } = require('../mekacontrollers/mekasettings');
+
+// ⬇️ ACCOUNT SETTINGS (EXTRA)
+const {
+  reactivateAccount,
+  suspendAccount,
+  sendDeleteCode,
+  deleteAccount,
+  getLoginHistory,
+  setTimezone,
+  updateBio,
+  downloadMyData
+} = require('../mekacontrollers/mekasettings');
+
+// ⬇️ FEEDBACK
 const { submitFeedback } = require('../mekacontrollers/mekafeedback');
 
+
+// ===============================
+// ✅ AUTHENTICATION ROUTES
+// ===============================
 router.post('/meka/register', registerUser);
 router.post('/meka/verify', verifyUser);
 router.post('/meka/login', loginUser);
@@ -43,39 +82,81 @@ router.post('/meka/check-email', checkEmail);
 router.post('/meka/check-phone', checkPhone);
 router.post('/meka/recover', recoverUnverifiedWithPassword);
 
-// Forgot password routes
+
+// ===============================
+// 🔑 PASSWORD RECOVERY
+// ===============================
 router.post('/meka/forgot', forgotController.sendResetCode);
 router.post('/meka/reset', forgotController.resetPassword);
 router.post('/meka/check-token', checkTokenValidity);
 
-router.post("/meka/ban-on-review-logout", banOnReviewLogout);
+
+// ===============================
+// 🚫 BAN OR SESSION TERMINATION
+// ===============================
+router.post('/meka/ban-on-review-logout', banOnReviewLogout);
+
+
+// ===============================
+// 📤 PUSH NOTIFICATIONS
+// ===============================
 router.post('/meka/send-push', sendPushNotification);
-router.post("/meka/upload-profile", uploadMiddleware, uploadProfileImage);
-router.post("/meka/profile-info", fetchProfileInfo);
-router.post("/meka/update-profile", verifyToken, updateProfileInfo);
-router.post("/meka/change-password", verifyToken, changePassword);
-router.post("/meka/toggle-notifications", verifyToken, toggleNotifications);
-router.post("/meka/sessions", verifyToken, getUserSessions);
-router.post("/meka/clear-sessions", verifyToken, clearUserSessions);
-router.post("/meka/delete-session", verifyToken, deleteSingleSession);
+
+
+// ===============================
+// 🖼️ PROFILE SETTINGS
+// ===============================
+router.post('/meka/upload-profile', uploadMiddleware, uploadProfileImage);
+router.post('/meka/profile-info', fetchProfileInfo);
+router.post('/meka/update-profile', verifyToken, updateProfileInfo);
+router.post('/meka/change-password', verifyToken, changePassword);
+router.post('/meka/toggle-notifications', verifyToken, toggleNotifications);
+
+
+// ===============================
+// 🧾 SESSION MANAGEMENT
+// ===============================
+router.post('/meka/sessions', verifyToken, getUserSessions);
+router.post('/meka/clear-sessions', verifyToken, clearUserSessions);
+router.post('/meka/delete-session', verifyToken, deleteSingleSession);
+
+
+// ===============================
+// 🔐 TWO-FACTOR AUTH (2FA)
+// ===============================
 router.post('/meka/send-2fa-code', sendTwoFACode);
 router.post('/meka/init-2fa', verifyToken, initTwoFA);
 router.post('/meka/verify-2fa-code', verifyTwoFACode);
 router.post('/meka/regenerate-backup-codes', verifyToken, regenerateBackupCodes);
 router.post('/meka/verify-login-2fa', verifyLogin2FA);
+
+
+// ===============================
+// ⚙️ ADVANCED ACCOUNT SETTINGS
+// ===============================
 router.post('/meka/reactivate-account', verifyToken, reactivateAccount);
 router.post('/meka/suspend-account', verifyToken, suspendAccount);
 router.post('/meka/send-delete-code', verifyToken, sendDeleteCode);
 router.post('/meka/delete-account', verifyToken, deleteAccount);
 router.post('/meka/login-history', verifyToken, getLoginHistory);
 router.post('/meka/set-timezone', verifyToken, setTimezone);
-router.post('/meka/submit-feedback', verifyToken, submitFeedback);
 router.post('/meka/update-bio', verifyToken, updateBio);
+router.get('/meka/download-my-data', verifyToken, downloadMyData);
 
+
+// ===============================
+// 💬 FEEDBACK
+// ===============================
+router.post('/meka/submit-feedback', verifyToken, submitFeedback);
+
+
+// ===============================
+// 🔄 SAVE FCM TOKEN
+// ===============================
 router.post('/meka/save-fcm', async (req, res) => {
   const { fcmToken, userId } = req.body;
 
-  // 👇 Add this to debug what’s coming in
+  // 👇 Debug logs
   console.log("📥 /meka/save-fcm called:");
   console.log("➡️ userId:", userId);
   console.log("➡️ fcmToken:", fcmToken);
@@ -95,15 +176,3 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
-
-
-
-
-
-
-
-
-
-
-
-
