@@ -1,3 +1,4 @@
+//mekaprofile.js
 const cloudinary = require('../mekaconfig/mekacloud');
 const db = require('../mekaconfig/mekadb');
 const multer = require('multer');
@@ -81,7 +82,7 @@ const fetchProfileInfo = async (req, res) => {
   }
 };
 
-exports.updateProfileInfo = async (req, res) => {
+const updateProfileInfo = async (req, res) => {
   const userId = req.user.id;
   const { firstName, lastName, username, email, phone, world } = req.body;
 
@@ -172,7 +173,7 @@ exports.updateProfileInfo = async (req, res) => {
   }
 };
 
-exports.changePassword = async (req, res) => {
+const changePassword = async (req, res) => {
   const userId = req.user.id;
   const { currentPassword, newPassword } = req.body;
 
@@ -207,7 +208,7 @@ exports.changePassword = async (req, res) => {
   }
 };
 
-exports.toggleNotifications = async (req, res) => {
+const toggleNotifications = async (req, res) => {
   const userId = req.user.id;
   const { enabled } = req.body;
 
@@ -227,7 +228,7 @@ exports.toggleNotifications = async (req, res) => {
   }
 };
 
-exports.getUserSessions = async (req, res) => {
+const getUserSessions = async (req, res) => {
   const userId = req.user.id;
 
   try {
@@ -244,7 +245,7 @@ exports.getUserSessions = async (req, res) => {
   }
 };
 
-exports.clearUserSessions = async (req, res) => {
+const clearUserSessions = async (req, res) => {
   const userId = req.user.id;
 
   try {
@@ -256,7 +257,7 @@ exports.clearUserSessions = async (req, res) => {
   }
 };
 
-exports.deleteSingleSession = async (req, res) => {
+const deleteSingleSession = async (req, res) => {
   const userId = req.user.id;
   const { sessionId } = req.body;
 
