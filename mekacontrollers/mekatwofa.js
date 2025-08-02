@@ -79,3 +79,41 @@ exports.sendTwoFACode = async (req, res) => {
     res.status(500).json({ message: '🔥 Could not send 2FA code' });
   }
 };
+
+exports.verifyTwoFACode = async (req, res) => {
+  const { internalId, code } = req.body;
+
+  if (!internalId || !code) {
+    return res.status(400).json({ message: 'Missing user ID or code' });
+  }
+
+  try {
+    // 1️⃣ Check temporary email code (MongoDB)
+    const found = await MekaShield.findOne({ userId: internalId });
+
+    if (found && found.code === code) {
+      await MekaShield.deleteOne({ userId: internalId }); // Clean up
+      return res.status(200).json({ message: "✅ Code verified" });
+    }
+
+    // 2️⃣ Check backup codes (PostgreSQL hashed)
+    const result = await db.query(`SELECT backup_codes FROM mekacore WHERE id_two = $1`, [internalId]);
+    const storedCodes = result.rows[0]?.backup_codes || [];
+
+    for (let hash of storedCodes) {
+      const isMatch = await bcrypt.compare(code, hash);
+      if (isMatch) {
+        // Remove used backup code
+        const newCodes = storedCodes.filter(c => c !== hash);
+        await db.query(`UPDATE mekacore SET backup_codes = $1 WHERE id_two = $2`, [newCodes, internalId]);
+        return res.status(200).json({ message: "✅ Backup code accepted" });
+      }
+    }
+
+    return res.status(401).json({ message: "❌ Invalid or expired code" });
+
+  } catch (err) {
+    console.error("❌ verifyTwoFACode error:", err);
+    res.status(500).json({ message: '🔥 Verification failed' });
+  }
+};
