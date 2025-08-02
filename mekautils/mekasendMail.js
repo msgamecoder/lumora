@@ -89,6 +89,20 @@ case "forgot":
   `;
   break;
 
+      case "delete":
+  subject = "🗑️ Confirm Account Deletion";
+  html = `
+    <div style="font-family: sans-serif; padding: 1rem;">
+      <p>Hi <b>@${options.username}</b>,</p>
+      <p>We received a request to permanently delete your Lumora account.</p>
+      <p>To confirm this action, enter the code below:</p>
+      <h2 style="letter-spacing: 4px; color: #ff0000;">${payload}</h2>
+      <p>This code is valid for 20 minutes. Do not share it with anyone.</p>
+      <p style="font-size: 0.8rem; color: #777;">🗑️ Lumora | Account Deletion Confirmation</p>
+    </div>
+  `;
+  break;
+
     default:
       throw new Error("Invalid email type");
   }
@@ -104,4 +118,5 @@ case "forgot":
 };
 
 module.exports = sendLumoraMail;
+
 
