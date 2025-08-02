@@ -28,7 +28,7 @@ const forgotController = require('../mekacontrollers/mekaforgotController');
 const { checkTokenValidity } = require('../mekacontrollers/mekacheckToken');
 const { banOnReviewLogout } = require('../mekacontrollers/mekaban');
 const { sendPushNotification } = require('../mekacontrollers/mekafcm');
-const { verifyToken } = require('../mekamiddleware/mekaauth');
+const verifyToken = require('../mekamiddleware/mekaauth'); // ✅ correct default import
 const { initTwoFA, sendTwoFACode, verifyTwoFACode } = require('../mekacontrollers/mekatwofa');
 
 router.post('/meka/register', registerUser);
@@ -81,5 +81,6 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
+
 
 
