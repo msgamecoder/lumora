@@ -31,6 +31,7 @@ const { sendPushNotification } = require('../mekacontrollers/mekafcm');
 const verifyToken = require('../mekamiddleware/mekaauth');
 const { initTwoFA, sendTwoFACode, verifyTwoFACode } = require('../mekacontrollers/mekatwofa');
 const { regenerateBackupCodes } = require('../mekacontrollers/mekatwofa');
+const { verifyLogin2FA } = require('../mekacontrollers/verifyLogin2FA');
 
 router.post('/meka/register', registerUser);
 router.post('/meka/verify', verifyUser);
@@ -59,6 +60,7 @@ router.post('/meka/send-2fa-code', sendTwoFACode);
 router.post('/meka/init-2fa', verifyToken, initTwoFA);
 router.post('/meka/verify-2fa-code', verifyTwoFACode);
 router.post('/meka/regenerate-backup-codes', verifyToken, regenerateBackupCodes);
+router.post('/meka/verify-login-2fa', verifyLogin2FA);
 
 router.post('/meka/save-fcm', async (req, res) => {
   const { fcmToken, userId } = req.body;
@@ -83,6 +85,7 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 
