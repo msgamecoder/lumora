@@ -117,3 +117,33 @@ exports.verifyTwoFACode = async (req, res) => {
     res.status(500).json({ message: '🔥 Verification failed' });
   }
 };
+
+exports.regenerateBackupCodes = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const newCodes = [];
+    const hashedCodes = [];
+
+    for (let i = 0; i < 8; i++) {
+      const rawCode = Math.random().toString(36).slice(2, 10).toUpperCase(); // Example: 8-char code
+      const hash = await bcrypt.hash(rawCode, 10);
+      newCodes.push(rawCode);
+      hashedCodes.push(hash);
+    }
+
+    await db.query(
+      `UPDATE mekacore SET backup_codes = $1 WHERE id_two = $2`,
+      [hashedCodes, userId]
+    );
+
+    return res.json({
+      message: "✅ Backup codes regenerated",
+      codes: newCodes // frontend will save this locally
+    });
+
+  } catch (err) {
+    console.error("❌ Failed to regenerate backup codes:", err);
+    res.status(500).json({ message: "🔥 Could not regenerate codes" });
+  }
+};
