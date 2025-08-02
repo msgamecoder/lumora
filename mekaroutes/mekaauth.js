@@ -32,7 +32,8 @@ const verifyToken = require('../mekamiddleware/mekaauth');
 const { initTwoFA, sendTwoFACode, verifyTwoFACode } = require('../mekacontrollers/mekatwofa');
 const { regenerateBackupCodes } = require('../mekacontrollers/mekatwofa');
 const { verifyLogin2FA } = require('../mekacontrollers/verifyLogin2FA');
-const { reactivateAccount, suspendAccount, sendDeleteCode, deleteAccount, getLoginHistory, setTimezone, submitFeedback } = require('../mekacontrollers/mekasettings');
+const { reactivateAccount, suspendAccount, sendDeleteCode, deleteAccount, getLoginHistory, setTimezone } = require('../mekacontrollers/mekasettings');
+const { submitFeedback } = require('../mekacontrollers/mekafeedback');
 
 router.post('/meka/register', registerUser);
 router.post('/meka/verify', verifyUser);
@@ -93,6 +94,7 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 
