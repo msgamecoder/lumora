@@ -88,6 +88,7 @@ await db.query(
     const isFlagged = user.flagged === true;
 
     return res.json({
+       ok: true,
       message: "✅ 2FA verified, login successful!",
       token,
       user: {
