@@ -9,9 +9,9 @@ const admin = require('../mekaconfig/mekafirebase');
 exports.verifyLogin2FA = async (req, res) => {
   const { internalId, code, deviceId, trustDevice } = req.body;
 
-  if (!internalId || !code || !deviceId) {
-    return res.status(400).json({ message: 'Missing required fields' });
-  }
+if (!internalId || !code || !deviceId) {
+  return res.status(400).json({ ok: false, message: 'Missing required fields' });
+}
 
   try {
     // 1️⃣ Try MongoDB code (email)
@@ -22,7 +22,7 @@ exports.verifyLogin2FA = async (req, res) => {
     } else {
       // 2️⃣ Try backup code
       const result = await db.query(`SELECT * FROM mekacore WHERE id_two = $1`, [internalId]);
-      if (result.rows.length === 0) return res.status(404).json({ message: 'User not found' });
+      if (result.rows.length === 0) return res.status(404).json({ ok: false, message: 'User not found' });
 
       const user = result.rows[0];
       const storedCodes = user.backup_codes || [];
@@ -35,7 +35,7 @@ exports.verifyLogin2FA = async (req, res) => {
         else remaining.push(hash);
       }
 
-      if (!matched) return res.status(401).json({ message: '❌ Invalid or expired 2FA/backup code' });
+      if (!matched) return res.status(401).json({ ok: false, message: '❌ Invalid or expired 2FA/backup code' });
 
       await db.query(`UPDATE mekacore SET backup_codes = $1 WHERE id_two = $2`, [remaining, internalId]);
     }
@@ -106,6 +106,6 @@ await db.query(
 
   } catch (err) {
     console.error("❌ verifyLogin2FA error:", err);
-    res.status(500).json({ message: "🔥 Internal server error during 2FA login" });
+    res.status(500).json({ ok: false, message: "🔥 Internal server error during 2FA login" });
   }
 };
