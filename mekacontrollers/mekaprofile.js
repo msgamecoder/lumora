@@ -3,11 +3,6 @@ const cloudinary = require('../mekaconfig/mekacloud');
 const db = require('../mekaconfig/mekadb');
 const multer = require('multer');
 const {
-  isValidName,
-  isValidUsername,
-  isValidEmail,
-  isValidPhone,
-  isValidWorld,
   isValidPassword
 } = require('../mekautils/validators');
 const bcrypt = require('bcryptjs');
@@ -79,111 +74,6 @@ const fetchProfileInfo = async (req, res) => {
   } catch (err) {
     console.error("❌ fetchProfileInfo error:", err);
     res.status(500).json({ ok: false, message: "Something went wrong" });
-  }
-};
-
-const updateProfileInfo = async (req, res) => {
-  const userId = req.user.id;
-  const { firstName, lastName, username, email, phone, world } = req.body;
-
-  if (!userId) return res.status(400).json({ message: 'Missing user ID' });
-
-  const updates = [];
-  const values = [];
-  let i = 1;
-
-  try {
-    const result = await db.query(`SELECT * FROM mekacore WHERE id_two = $1`, [userId]);
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'User not found.' });
-    }
-
-    const current = result.rows[0];
-
-    const isExactSame = (a, b) => (a || '').trim() === (b || '').trim();
-    const normalized = (val) => (val || '').trim().toLowerCase();
-
-    // 🔤 FIRST NAME
-    if (firstName !== undefined) {
-      if (!isValidName(firstName)) return res.status(400).json({ message: '❌ Invalid first name.' });
-      if (isExactSame(firstName, current.first_name)) return res.status(409).json({ message: '⚠️ First name is the same as current.' });
-
-      updates.push(`first_name = $${i++}`);
-      values.push(firstName.trim());
-    }
-
-    // 🔤 LAST NAME
-    if (lastName !== undefined) {
-      if (!isValidName(lastName)) return res.status(400).json({ message: '❌ Invalid last name.' });
-      if (isExactSame(lastName, current.last_name)) return res.status(409).json({ message: '⚠️ Last name is the same as current.' });
-
-      updates.push(`last_name = $${i++}`);
-      values.push(lastName.trim());
-    }
-
-    // 🔤 USERNAME
-    if (username !== undefined) {
-      if (!isValidUsername(username)) return res.status(400).json({ message: '❌ Invalid username format.' });
-      if (isExactSame(username, current.username)) return res.status(409).json({ message: '⚠️ Username is the same as current.' });
-
-      const normalizedUsername = normalized(username);
-      const check = await db.query(`SELECT id_two FROM mekacore WHERE LOWER(username) = $1 AND id_two != $2`, [normalizedUsername, userId]);
-      if (check.rows.length > 0) return res.status(409).json({ message: '🧍 Username already taken.' });
-
-      updates.push(`username = $${i++}`);
-      values.push(username.trim());
-    }
-
-    // 📧 EMAIL
-    if (email !== undefined) {
-      if (!isValidEmail(email)) return res.status(400).json({ message: '📧 Invalid email.' });
-      if (isExactSame(email, current.email)) return res.status(409).json({ message: '⚠️ Email is the same as current.' });
-
-      const normalizedEmail = normalized(email);
-      const check = await db.query(`SELECT id_two FROM mekacore WHERE LOWER(email) = $1 AND id_two != $2`, [normalizedEmail, userId]);
-      if (check.rows.length > 0) return res.status(409).json({ message: '📧 Email already in use.' });
-
-      updates.push(`email = $${i++}`);
-      values.push(email.trim().toLowerCase());
-    }
-
-    // 📞 PHONE
-    if (phone !== undefined) {
-      if (!isValidPhone(phone)) return res.status(400).json({ message: '📱 Invalid phone.' });
-      if (isExactSame(phone, current.phone)) return res.status(409).json({ message: '⚠️ Phone is the same as current.' });
-
-      const check = await db.query(`SELECT id_two FROM mekacore WHERE phone = $1 AND id_two != $2`, [phone.trim(), userId]);
-      if (check.rows.length > 0) return res.status(409).json({ message: '☎️ Phone number already used.' });
-
-      updates.push(`phone = $${i++}`);
-      values.push(phone.trim());
-    }
-
-    // 🌍 WORLD
-    if (world !== undefined) {
-      if (!isValidWorld(world)) return res.status(400).json({ message: '🌍 Invalid world.' });
-      if (isExactSame(world, current.world)) return res.status(409).json({ message: '⚠️ World is the same as current.' });
-
-      updates.push(`world = $${i++}`);
-      values.push(world.trim());
-    }
-
-    // ⚠️ No valid changes?
-    if (updates.length === 0) {
-      return res.status(400).json({ message: '⚠️ No valid changes provided.' });
-    }
-
-    values.push(userId);
-    await db.query(`UPDATE mekacore SET ${updates.join(', ')} WHERE id_two = $${i}`, values);
-
-    console.log('✅ Updated fields:', updates);
-    console.log('🧾 With values:', values);
-
-    res.json({ message: "✅ Profile updated." });
-
-  } catch (err) {
-    console.error("❌ Profile update error:", err);
-    res.status(500).json({ message: "🔥 Internal server error." });
   }
 };
 
@@ -298,7 +188,6 @@ module.exports = {
   uploadMiddleware,
   uploadProfileImage,
   fetchProfileInfo,
-  updateProfileInfo,
   changePassword,
   toggleNotifications,
   getUserSessions,
