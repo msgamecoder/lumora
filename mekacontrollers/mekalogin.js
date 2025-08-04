@@ -10,9 +10,9 @@ exports.loginUser = async (req, res) => {
   try {
     const { identifier, password, deviceId, fcmToken } = req.body;
 
-    if (!identifier || !password || !deviceId) {
-      return res.status(400).json({ message: '🚨 Please enter identifier, password, and device ID.' });
-    }
+if (!identifier || !password || !deviceId) {
+  return res.status(400).json({ ok: false, message: '🚨 Please enter identifier, password, and device ID.' });
+}
 
     let result;
     if (identifier.includes('@')) {
@@ -23,13 +23,15 @@ exports.loginUser = async (req, res) => {
       result = await pool.query(`SELECT * FROM mekacore WHERE username = $1 LIMIT 1`, [identifier]);
     }
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: '❌ User not found with that identifier.' });
-    }
+ if (!identifier || !password || !deviceId) {
+  return res.status(400).json({ ok: false, message: '🚨 Please enter identifier, password, and device ID.' });
+}
 
     const user = result.rows[0];
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: '🔐 Incorrect password.' });
+    if (!isMatch) {
+  return res.status(401).json({ ok: false, message: '🔐 Incorrect password.' });
+}
 
     // ✅ Handle FCM token update
     if (fcmToken && fcmToken !== user.fcm_token) {
@@ -90,8 +92,9 @@ exports.loginUser = async (req, res) => {
 
   } catch (err) {
     console.error('Login error:', err);
-    return res.status(500).json({ message: '🔥 Internal server error.' });
+    return res.status(500).json({ ok: false, message: '🔥 Internal server error.' });
   }
 };
+
 
 
