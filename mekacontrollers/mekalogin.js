@@ -72,6 +72,7 @@ exports.loginUser = async (req, res) => {
     const isFlagged = user.flagged === true;
 
     return res.status(200).json({
+       ok: true,
       message: '✅ Login successful!',
       token,
       user: {
@@ -92,4 +93,5 @@ exports.loginUser = async (req, res) => {
     return res.status(500).json({ message: '🔥 Internal server error.' });
   }
 };
+
 
