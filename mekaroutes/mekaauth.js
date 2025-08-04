@@ -23,13 +23,21 @@ const {
   uploadMiddleware,
   uploadProfileImage,
   fetchProfileInfo,
-  updateProfileInfo,
   changePassword,
   toggleNotifications,
   getUserSessions,
   clearUserSessions,
   deleteSingleSession
 } = require('../mekacontrollers/mekaprofile');
+
+const {
+  updateFirstName,
+  updateLastName,
+  updateUsername,
+  updateEmail,
+  updatePhone,
+  updateWorld
+} = require('../mekacontrollers/mekaprofile-split');
 
 // ⬇️ FORGOT PASSWORD FLOW
 const forgotController = require('../mekacontrollers/mekaforgotController');
@@ -108,7 +116,12 @@ router.post('/meka/send-push', sendPushNotification);
 // ===============================
 router.post('/meka/upload-profile', uploadMiddleware, uploadProfileImage);
 router.post('/meka/profile-info', fetchProfileInfo);
-router.post('/meka/update-profile', verifyToken, updateProfileInfo);
+router.post('/meka/update-firstname', verifyToken, updateFirstName);
+router.post('/meka/update-lastname', verifyToken, updateLastName);
+router.post('/meka/update-username', verifyToken, updateUsername);
+router.post('/meka/update-email', verifyToken, updateEmail);
+router.post('/meka/update-phone', verifyToken, updatePhone);
+router.post('/meka/update-world', verifyToken, updateWorld);
 router.post('/meka/change-password', verifyToken, changePassword);
 router.post('/meka/toggle-notifications', verifyToken, toggleNotifications);
 
@@ -176,3 +189,4 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
+
