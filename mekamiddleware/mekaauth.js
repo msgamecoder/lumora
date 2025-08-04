@@ -12,9 +12,15 @@ const verifyToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.meka = decoded;
 
-    const result = await pool.query(`SELECT flagged, suspended FROM mekacore WHERE id_two = $1`, [decoded.id]);
+    // 🧠 Set both for compatibility
+    req.meka = decoded;
+    req.user = decoded; // 👈 Add this line so older code still works
+
+    const result = await pool.query(
+      `SELECT flagged, suspended FROM mekacore WHERE id_two = $1`,
+      [decoded.id]
+    );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "👤 User not found." });
@@ -31,7 +37,6 @@ const verifyToken = async (req, res, next) => {
     }
 
     next();
-
   } catch (err) {
     return res.status(403).json({ message: '🚫 Invalid or expired token.' });
   }
