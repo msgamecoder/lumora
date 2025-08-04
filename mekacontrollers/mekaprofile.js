@@ -86,6 +86,9 @@ const updateProfileInfo = async (req, res) => {
   const userId = req.user.id;
   const { firstName, lastName, username, email, phone, world } = req.body;
 
+  console.log("📩 update-profile body:", req.body);
+  console.log("🔑 Auth user ID:", req.user?.id);
+
   if (!userId) return res.status(400).json({ message: 'Missing user ID' });
 
   const updates = [];
