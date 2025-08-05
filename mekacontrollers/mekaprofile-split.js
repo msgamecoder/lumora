@@ -31,7 +31,7 @@ const updateField = async (req, res, column, value, validator, checkUnique = fal
     }
 
     await db.query(`UPDATE mekacore SET ${column} = $1 WHERE id_two = $2`, [value.trim(), userId]);
-    res.json({ message: `✅ ${column} updated successfully.` });
+    res.json({ ok: true, message: `✅ ${column} updated successfully.` });
   } catch (err) {
     console.error(`❌ Error updating ${column}:`, err);
     res.status(500).json({ message: '🔥 Internal server error.' });
