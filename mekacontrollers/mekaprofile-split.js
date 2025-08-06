@@ -100,7 +100,7 @@ exports.updateEmail = async (req, res) => {
     await MekaShield.create({
       userId,
       code,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 20 * 60 * 1000),
       field: 'email',
       value: email
     });
@@ -139,7 +139,7 @@ exports.updatePhone = async (req, res) => {
     await MekaShield.create({
       userId,
       code,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 20 * 60 * 1000),
       field: 'phone',
       value: phone
     });
