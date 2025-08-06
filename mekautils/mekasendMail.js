@@ -83,7 +83,7 @@ case "forgot":
       <p>Hi <b>@${options.username}</b>,</p>
       <p>Your Lumora Shield verification code is:</p>
       <h2 style="letter-spacing: 4px; color: #8e2de2;">${payload}</h2>
-      <p>This code expires in 5 minutes. Do not share it with anyone.</p>
+      <p>This code expires in 20 minutes. Do not share it with anyone.</p>
       <p style="font-size: 0.8rem; color: #777;">🔐 Lumora | Shield Login</p>
     </div>
   `;
@@ -118,5 +118,6 @@ case "forgot":
 };
 
 module.exports = sendLumoraMail;
+
 
 
