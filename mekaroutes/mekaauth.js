@@ -36,7 +36,8 @@ const {
   updateUsername,
   updateEmail,
   updatePhone,
-  updateWorld
+  updateWorld,
+  confirmFieldUpdate
 } = require('../mekacontrollers/mekaprofile-split');
 
 // ⬇️ FORGOT PASSWORD FLOW
@@ -124,7 +125,7 @@ router.post('/meka/update-phone', verifyToken, updatePhone);
 router.post('/meka/update-world', verifyToken, updateWorld);
 router.post('/meka/change-password', verifyToken, changePassword);
 router.post('/meka/toggle-notifications', verifyToken, toggleNotifications);
-
+router.post('/meka/confirm-update', verifyToken, confirmFieldUpdate);
 
 // ===============================
 // 🧾 SESSION MANAGEMENT
@@ -189,4 +190,5 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
+
 
