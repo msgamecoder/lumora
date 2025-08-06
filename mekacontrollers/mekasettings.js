@@ -154,11 +154,6 @@ exports.updateBio = async (req, res) => {
 
   bio = bio.trim();
 
-  // Enforce Lumora presence
-  if (!bio.toLowerCase().includes('lumora')) {
-    return res.status(400).json({ message: '❌ Bio must mention Lumora 🔮' });
-  }
-
   // Block links and spammy domains
   const forbiddenPatterns = [
     /https?:\/\//i,
