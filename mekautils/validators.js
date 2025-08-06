@@ -15,7 +15,7 @@ const isValidEmail = (email) => {
 };
 
 const isValidPhone = (phone) => {
-  return typeof phone === 'string' && /^\d{10,16}$/.test(phone);
+  return typeof phone === 'string' && /^\+?[1-9]\d{7,14}$/.test(phone);
 };
 
 const isValidWorld = (world) => {
