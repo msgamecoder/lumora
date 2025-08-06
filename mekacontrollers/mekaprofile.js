@@ -1,10 +1,12 @@
-//mekaprofile.js
+//mekacontrollers/mekaprofile.js
 const cloudinary = require('../mekaconfig/mekacloud');
 const db = require('../mekaconfig/mekadb');
 const multer = require('multer');
 const {
   isValidPassword
 } = require('../mekautils/validators');
+const MekaShield = require('../mekamodels/mekashield');
+const sendLumoraMail = require('../mekautils/mekasendMail');
 const bcrypt = require('bcryptjs');
 const storage = multer.memoryStorage();
 const uploadMiddleware = multer({ storage }).single('image');
@@ -77,21 +79,21 @@ const fetchProfileInfo = async (req, res) => {
   }
 };
 
-const changePassword = async (req, res) => {
+const requestPasswordChange = async (req, res) => {
   const userId = req.user.id;
   const { currentPassword, newPassword } = req.body;
 
   if (!userId || !currentPassword || !newPassword) {
-    return res.status(400).json({ message: "All password fields are required." });
+    return res.status(400).json({ message: "All fields required." });
   }
 
   if (!isValidPassword(newPassword)) {
-    return res.status(400).json({ message: "🔐 New password must be 10 to 15 characters." });
+    return res.status(400).json({ message: "🔐 Password must be 10–15 characters." });
   }
 
   try {
-    const result = await db.query(`SELECT password FROM mekacore WHERE id_two = $1`, [userId]);
-    if (result.rows.length === 0) return res.status(404).json({ message: "User not found." });
+    const result = await db.query(`SELECT password, email, username FROM mekacore WHERE id_two = $1`, [userId]);
+    if (!result.rows.length) return res.status(404).json({ message: "User not found." });
 
     const user = result.rows[0];
 
@@ -99,16 +101,49 @@ const changePassword = async (req, res) => {
     if (!isMatch) return res.status(401).json({ message: "❌ Incorrect current password." });
 
     const isSame = await bcrypt.compare(newPassword, user.password);
-    if (isSame) return res.status(409).json({ message: "⚠️ New password cannot be the same as old one." });
+    if (isSame) return res.status(409).json({ message: "⚠️ New password can’t match old password." });
 
-    const hashed = await bcrypt.hash(newPassword, 10);
-    await db.query(`UPDATE mekacore SET password = $1 WHERE id_two = $2`, [hashed, userId]);
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-    res.json({ message: "✅ Password updated successfully." });
+    await MekaShield.deleteMany({ userId, field: 'password' }); // cleanup any old ones
+
+    await MekaShield.create({
+      userId,
+      code,
+      field: 'password',
+      value: await bcrypt.hash(newPassword, 10),
+      expiresAt: new Date(Date.now() + 20 * 60 * 1000)
+    });
+
+    await sendLumoraMail(user.email, code, '2fa', { username: user.username });
+
+    res.json({ ok: true, message: "📨 Password confirmation code sent to your email." });
 
   } catch (err) {
-    console.error("❌ Password change error:", err);
+    console.error("❌ requestPasswordChange error:", err);
     res.status(500).json({ message: "🔥 Something went wrong." });
+  }
+};
+
+const confirmPasswordChange = async (req, res) => {
+  const userId = req.user.id;
+  const { code } = req.body;
+
+  if (!userId || !code) {
+    return res.status(400).json({ message: 'Code required.' });
+  }
+
+  try {
+    const record = await MekaShield.findOne({ userId, code, field: 'password' });
+    if (!record) return res.status(404).json({ message: '❌ Invalid or expired code.' });
+
+    await db.query(`UPDATE mekacore SET password = $1 WHERE id_two = $2`, [record.value, userId]);
+    await MekaShield.deleteOne({ _id: record._id });
+
+    res.json({ ok: true, message: "✅ Password updated successfully." });
+  } catch (err) {
+    console.error("❌ confirmPasswordChange error:", err);
+    res.status(500).json({ message: "🔥 Internal error." });
   }
 };
 
@@ -125,7 +160,7 @@ const toggleNotifications = async (req, res) => {
       `UPDATE mekacore SET notifications_enabled = $1 WHERE id_two = $2`,
       [enabled, userId]
     );
-    res.json({ message: `✅ Notifications ${enabled ? 'enabled' : 'disabled'}.` });
+    res.json({ ok: true, message: `✅ Notifications ${enabled ? 'enabled' : 'disabled'}.` });
   } catch (err) {
     console.error("❌ toggleNotifications error:", err);
     res.status(500).json({ message: "🔥 Internal server error." });
@@ -177,7 +212,7 @@ const deleteSingleSession = async (req, res) => {
       return res.status(404).json({ message: "❌ Session not found or already deleted." });
     }
 
-    res.json({ message: "✅ Session deleted." });
+    res.json({ ok: true, message: "✅ Session deleted." });
   } catch (err) {
     console.error("❌ deleteSingleSession error:", err);
     res.status(500).json({ message: "🔥 Server error deleting session" });
@@ -188,9 +223,10 @@ module.exports = {
   uploadMiddleware,
   uploadProfileImage,
   fetchProfileInfo,
-  changePassword,
   toggleNotifications,
   getUserSessions,
   clearUserSessions,
-  deleteSingleSession
+  deleteSingleSession,
+  requestPasswordChange,     // new
+  confirmPasswordChange      // new
 };
