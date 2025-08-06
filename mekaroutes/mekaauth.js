@@ -23,11 +23,12 @@ const {
   uploadMiddleware,
   uploadProfileImage,
   fetchProfileInfo,
-  changePassword,
+  requestPasswordChange,
   toggleNotifications,
   getUserSessions,
   clearUserSessions,
-  deleteSingleSession
+  deleteSingleSession,
+  confirmPasswordChange,
 } = require('../mekacontrollers/mekaprofile');
 
 const {
@@ -123,9 +124,10 @@ router.post('/meka/update-username', verifyToken, updateUsername);
 router.post('/meka/update-email', verifyToken, updateEmail);
 router.post('/meka/update-phone', verifyToken, updatePhone);
 router.post('/meka/update-world', verifyToken, updateWorld);
-router.post('/meka/change-password', verifyToken, changePassword);
+router.post('/meka/change-password', verifyToken, requestPasswordChange);
 router.post('/meka/toggle-notifications', verifyToken, toggleNotifications);
 router.post('/meka/confirm-update', verifyToken, confirmFieldUpdate);
+router.post('/meka/confirm-update', verifyToken, confirmPasswordChange);
 
 // ===============================
 // 🧾 SESSION MANAGEMENT
@@ -190,5 +192,3 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
-
-
