@@ -1,7 +1,7 @@
 //mekacontrollers/mekatwofa.js
 const bcrypt = require('bcryptjs');
 const db = require('../mekaconfig/mekadb');
-const MekaShield = require('../mekamodels/mekashield');
+const MekaShield = require('../mekamodels/mekashield'); // reuse
 const sendLumoraMail = require('../mekautils/mekasendMail');
 
 // Generate random readable backup codes
@@ -67,7 +67,7 @@ exports.sendTwoFACode = async (req, res) => {
     await MekaShield.create({
       userId: internalId,
       code,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000)
+      expiresAt: new Date(Date.now() + 20 * 60 * 1000)
     });
 
     await sendLumoraMail(email, code, "2fa", { username });
