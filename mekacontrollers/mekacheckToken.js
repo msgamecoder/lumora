@@ -11,7 +11,7 @@ exports.checkTokenValidity = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("🔎 Comparing decoded.id:", decoded.id, "with userId:", userId);
+   // console.log("🔎 Comparing decoded.id:", decoded.id, "with userId:", userId);
 
     if (decoded.id !== userId) {
       return res.status(403).json({ message: "⛔ Invalid session." });
@@ -21,7 +21,7 @@ exports.checkTokenValidity = async (req, res) => {
 // Instead of checking MongoDB, check PostgreSQL core user record
 const result = await pool.query("SELECT * FROM mekacore WHERE id_two = $1", [userId]);
 if (result.rows.length === 0) {
-  return res.status(404).json({ message: "👤 User not found." });
+  return res.status(410).json({ ok: false, message: "⛔ Your account has been deleted." });
 }
 
 const user = result.rows[0];
