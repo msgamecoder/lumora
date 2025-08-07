@@ -143,7 +143,8 @@ exports.updatePhone = async (req, res) => {
       field: 'phone',
       value: phone
     });
-
+     
+    await sendLumoraMail(result.rows[0].email, code, '2fa', { username });
     // ⚠️ If you plan to add SMS later, trigger it here
     res.json({ ok: true, message: '📲 Verification code sent to new phone', code });
 
