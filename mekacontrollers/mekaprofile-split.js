@@ -122,7 +122,7 @@ exports.updatePhone = async (req, res) => {
   if (!isValidPhone(phone)) return res.status(400).json({ message: '📱 Invalid phone' });
 
   try {
-    const result = await db.query(`SELECT phone, username FROM mekacore WHERE id_two = $1`, [userId]);
+    const result = await db.query(`SELECT phone, username, email FROM mekacore WHERE id_two = $1`, [userId]);
     if (!result.rows.length) return res.status(404).json({ message: 'User not found' });
 
     const currentPhone = result.rows[0].phone;
