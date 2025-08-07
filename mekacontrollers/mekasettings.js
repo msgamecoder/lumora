@@ -11,7 +11,7 @@ exports.suspendAccount = async (req, res) => {
 
   try {
     await pool.query(`UPDATE mekacore SET suspended = true WHERE id_two = $1`, [userId]);
-    return res.status(200).json({ message: "⏸️ Account suspended successfully. You can reactivate later." });
+    return res.status(200).json({ ok: true, message: "⏸️ Account suspended successfully. You can reactivate later." });
   } catch (err) {
     console.error("❌ Suspend account error:", err);
     return res.status(500).json({ message: "🔥 Failed to suspend account." });
@@ -35,7 +35,7 @@ exports.reactivateAccount = async (req, res) => {
     }
 
     await pool.query(`UPDATE mekacore SET suspended = false WHERE id_two = $1`, [userId]);
-    return res.status(200).json({ message: "✅ Account reactivated successfully!" });
+    return res.status(200).json({ ok: true, message: "✅ Account reactivated successfully!" });
 
   } catch (err) {
     console.error("❌ Reactivate account error:", err);
@@ -67,7 +67,7 @@ exports.sendDeleteCode = async (req, res) => {
       username: user.username
     });
 
-    return res.status(200).json({ message: "✅ Deletion code sent to your email." });
+    return res.status(200).json({ ok: true, message: "✅ Deletion code sent to your email." });
 
   } catch (err) {
     console.error("❌ sendDeleteCode error:", err);
@@ -95,7 +95,7 @@ exports.deleteAccount = async (req, res) => {
     // Delete from PostgreSQL
     await pool.query(`DELETE FROM mekacore WHERE id_two = $1`, [userId]);
 
-    return res.status(200).json({ message: "✅ Account permanently deleted." });
+    return res.status(200).json({ ok: true, message: "✅ Account permanently deleted." });
 
   } catch (err) {
     console.error("❌ deleteAccount error:", err);
@@ -113,6 +113,7 @@ exports.getLoginHistory = async (req, res) => {
     );
 
     res.status(200).json({
+      ok: true,
       message: "✅ Login history fetched.",
       history: result.rows
     });
@@ -137,7 +138,7 @@ exports.setTimezone = async (req, res) => {
       [timezone, userId]
     );
 
-    res.json({ message: `✅ Timezone updated to ${timezone}` });
+    res.json({ ok: true, message: `✅ Timezone updated to ${timezone}` });
   } catch (err) {
     console.error("Timezone update error:", err);
     res.status(500).json({ message: "🔥 Failed to update timezone" });
@@ -178,7 +179,7 @@ exports.updateBio = async (req, res) => {
 
   try {
     await pool.query(`UPDATE mekacore SET bio = $1 WHERE id_two = $2`, [bio, userId]);
-    res.status(200).json({ message: '✅ Bio updated successfully.' });
+    res.status(200).json({ ok: true, message: '✅ Bio updated successfully.' });
   } catch (err) {
     console.error("Bio update error:", err);
     res.status(500).json({ message: '🔥 Failed to update bio.' });
