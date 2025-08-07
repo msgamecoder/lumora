@@ -26,15 +26,20 @@ const verifyToken = async (req, res, next) => {
       return res.status(404).json({ message: "👤 User not found." });
     }
 
-    const user = result.rows[0];
+const user = result.rows[0];
 
-    if (user.flagged) {
-      return res.status(423).json({ message: "🔒 Account flagged. Access denied." });
-    }
+if (user.flagged) {
+  return res.status(423).json({ message: "🔒 Account flagged. Access denied." });
+}
 
-    if (user.suspended) {
-      return res.status(423).json({ message: "⏸️ Account suspended. Access denied." });
-    }
+if (user.suspended) {
+  // ✅ Allow suspended users only for the reactivation endpoint
+  if (req.originalUrl === "/api/auth/meka/reactivate-account") {
+    return next();
+  }
+
+  return res.status(423).json({ message: "⏸️ Account suspended. Access denied." });
+}
 
     next();
   } catch (err) {
