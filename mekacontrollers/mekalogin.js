@@ -86,7 +86,8 @@ exports.loginUser = async (req, res) => {
         email: user.email,
         world: user.world,
         profileImage: user.profile_image,
-        flagged: isFlagged
+        flagged: isFlagged,
+        suspended: user.suspended === true
       }
     });
 
@@ -95,7 +96,3 @@ exports.loginUser = async (req, res) => {
     return res.status(500).json({ ok: false, message: '🔥 Internal server error.' });
   }
 };
-
-
-
-
