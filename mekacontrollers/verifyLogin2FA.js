@@ -100,7 +100,8 @@ await db.query(
         email: user.email,
         world: user.world,
         profileImage: user.profile_image,
-        flagged: isFlagged
+        flagged: isFlagged,
+        suspended: user.suspended === true
       }
     });
 
