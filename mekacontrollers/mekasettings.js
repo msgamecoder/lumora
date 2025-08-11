@@ -124,6 +124,26 @@ exports.getLoginHistory = async (req, res) => {
   }
 };
 
+exports.clearLoginHistory = async (req, res) => {
+  const userId = req.meka.id;
+
+  try {
+    await pool.query(
+      `DELETE FROM mekaloginhistory WHERE user_id = $1`,
+      [userId]
+    );
+
+    res.status(200).json({
+      ok: true,
+      message: "🧹 All login history cleared."
+    });
+
+  } catch (err) {
+    console.error("❌ clearLoginHistory error:", err);
+    res.status(500).json({ message: "🔥 Failed to clear login history." });
+  }
+};
+
 exports.setTimezone = async (req, res) => {
   const userId = req.meka.id;
   const { timezone } = req.body;
