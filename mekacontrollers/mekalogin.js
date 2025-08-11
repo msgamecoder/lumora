@@ -94,6 +94,16 @@ await pool.query(
   [user.id_two, ip, location]
 );
 
+    // ✅ Save session into mekasessions
+    const userAgent = req.headers['user-agent'] || 'Unknown';
+    const loginTime = new Date();
+
+    await pool.query(
+      `INSERT INTO mekasessions (user_id, device_id, ip_address, user_agent, login_time)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [user.id_two, deviceId, ip, userAgent, loginTime]
+    );
+
     const token = jwt.sign({ id: user.id_two }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     const isFlagged = user.flagged === true;
