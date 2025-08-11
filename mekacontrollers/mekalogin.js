@@ -67,8 +67,9 @@ exports.loginUser = async (req, res) => {
 // ✅ Lookup location from IP
 let location = null;
 try {
-  const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
-  const geoData = await geoRes.json();
+const geoRes = await fetch(`https://ipinfo.io/${ip}?token=8b24ed9e92f2b8`);
+const geoData = await geoRes.json();
+console.log(geoData.city, geoData.country);
   if (!geoData.error) {
     location = `${geoData.city || 'Unknown city'}, ${geoData.country_name || 'Unknown country'}`;
   }
@@ -109,4 +110,3 @@ await pool.query(
     return res.status(500).json({ ok: false, message: '🔥 Internal server error.' });
   }
 };
-
