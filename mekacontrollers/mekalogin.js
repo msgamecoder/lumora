@@ -64,9 +64,22 @@ exports.loginUser = async (req, res) => {
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
     await pool.query(`UPDATE mekacore SET device_id = $1, last_ip = $2 WHERE id_two = $3`, [deviceId, ip, user.id_two]);
 
-    await pool.query(
+// ✅ Lookup location from IP
+let location = null;
+try {
+  const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
+  const geoData = await geoRes.json();
+  if (!geoData.error) {
+    location = `${geoData.city || 'Unknown city'}, ${geoData.country_name || 'Unknown country'}`;
+  }
+} catch (err) {
+  console.error('Geo lookup failed:', err.message);
+}
+
+// ✅ Save into mekaloginhistory with location
+await pool.query(
   `INSERT INTO mekaloginhistory (user_id, ip, location) VALUES ($1, $2, $3)`,
-  [user.id_two, ip, null] // Add location later if you want
+  [user.id_two, ip, location]
 );
 
     const token = jwt.sign({ id: user.id_two }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -96,3 +109,4 @@ exports.loginUser = async (req, res) => {
     return res.status(500).json({ ok: false, message: '🔥 Internal server error.' });
   }
 };
+
