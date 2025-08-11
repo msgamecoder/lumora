@@ -67,14 +67,25 @@ exports.loginUser = async (req, res) => {
 // ✅ Lookup location from IP
 let location = null;
 try {
-const geoRes = await fetch(`https://ipinfo.io/${ip}?token=8b24ed9e92f2b8`);
-const geoData = await geoRes.json();
-console.log(geoData.city, geoData.country);
-  if (!geoData.error) {
-    location = `${geoData.city || 'Unknown city'}, ${geoData.country_name || 'Unknown country'}`;
+  if (
+    ip &&
+    !ip.startsWith('192.') &&
+    !ip.startsWith('127.') &&
+    !ip.startsWith('::') &&
+    ip !== '::1'
+  ) {
+    const geoRes = await fetch(`https://ipinfo.io/${ip}?token=8b24ed9e92f2b8`);
+    const geoData = await geoRes.json();
+
+    if (!geoData.error) {
+      location = `${geoData.city || 'Unknown city'}, ${geoData.country || 'Unknown country'}`;
+    }
+  } else {
+    location = 'Local network';
   }
 } catch (err) {
   console.error('Geo lookup failed:', err.message);
+  location = 'Unknown';
 }
 
 // ✅ Save into mekaloginhistory with location
