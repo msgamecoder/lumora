@@ -74,6 +74,7 @@ const {
   getLoginHistory,
   setTimezone,
   updateBio,
+  clearLoginHistory,
   downloadMyData
 } = require('../mekacontrollers/mekasettings');
 
@@ -155,6 +156,7 @@ router.post('/meka/suspend-account', verifyToken, suspendAccount);
 router.post('/meka/send-delete-code', verifyToken, sendDeleteCode);
 router.post('/meka/delete-account', verifyToken, deleteAccount);
 router.post('/meka/login-history', verifyToken, getLoginHistory);
+router.post('/meka/clearlogin-history', verifyToken, clearLoginHistory);
 router.post('/meka/set-timezone', verifyToken, setTimezone);
 router.post('/meka/update-bio', verifyToken, updateBio);
 router.get('/meka/download-my-data', verifyToken, downloadMyData);
@@ -192,3 +194,4 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
+
