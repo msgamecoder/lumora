@@ -60,10 +60,34 @@ if (!internalId || !code || !deviceId) {
       ip
     });
 
-    // ✅ Save login history
-await db.query(
+// ✅ Lookup location from IP
+let location = null;
+try {
+  if (
+    ip &&
+    !ip.startsWith('192.') &&
+    !ip.startsWith('127.') &&
+    !ip.startsWith('::') &&
+    ip !== '::1'
+  ) {
+    const geoRes = await fetch(`https://ipinfo.io/${ip}?token=8b24ed9e92f2b8`);
+    const geoData = await geoRes.json();
+
+    if (!geoData.error) {
+      location = `${geoData.city || 'Unknown city'}, ${geoData.country || 'Unknown country'}`;
+    }
+  } else {
+    location = 'Local network';
+  }
+} catch (err) {
+  console.error('Geo lookup failed:', err.message);
+  location = 'Unknown';
+}
+
+// ✅ Save into mekaloginhistory with location
+await pool.query(
   `INSERT INTO mekaloginhistory (user_id, ip, location) VALUES ($1, $2, $3)`,
-  [user.id_two, ip, null]
+  [user.id_two, ip, location]
 );
 
     if (user.notifications_enabled && user.fcm_token) {
