@@ -141,7 +141,7 @@ router.post('/meka/delete-session', verifyToken, deleteSingleSession);
 // ===============================
 // 🔐 TWO-FACTOR AUTH (2FA)
 // ===============================
-router.post('/meka/send-2fa-code', sendTwoFACode);
+router.post('/meka/send-2fa-code', verifyToken, sendTwoFACode);
 router.post('/meka/init-2fa', verifyToken, initTwoFA);
 router.post('/meka/verify-2fa-code', verifyTwoFACode);
 router.post('/meka/regenerate-backup-codes', verifyToken, regenerateBackupCodes);
@@ -194,4 +194,5 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
+
 
