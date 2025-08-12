@@ -92,6 +92,8 @@ exports.sendTwoFACode = async (req, res) => {
 };
 
 exports.verifyTwoFACode = async (req, res) => {
+      console.log("🛠 Incoming verify request body:", req.body);
+    console.log("🛠 Incoming verify request user:", req.user);
   const userId = req.user.id; // id_two
   const { code } = req.body;
 
@@ -129,8 +131,6 @@ exports.verifyTwoFACode = async (req, res) => {
     res.status(500).json({ message: '🔥 Verification failed' });
   }
 };
-console.log("🛠 Incoming verify request body:", req.body);
-console.log("🛠 Incoming verify request user:", req.user);
 
 exports.regenerateBackupCodes = async (req, res) => {
   const userId = req.user.id;
