@@ -90,8 +90,7 @@ exports.sendTwoFACode = async (req, res) => {
     res.status(500).json({ message: '🔥 Could not send 2FA code' });
   }
 };
-console.log("🛠 Incoming verify request body:", req.body);
-console.log("🛠 Incoming verify request user:", req.user);
+
 exports.verifyTwoFACode = async (req, res) => {
   const userId = req.user.id; // id_two
   const { code } = req.body;
