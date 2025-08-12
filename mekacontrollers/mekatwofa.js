@@ -92,8 +92,6 @@ exports.sendTwoFACode = async (req, res) => {
 };
 
 exports.verifyTwoFACode = async (req, res) => {
-      console.log("🛠 Incoming verify request body:", req.body);
-    console.log("🛠 Incoming verify request user:", req.user);
   const userId = req.user.id; // id_two
   const { code } = req.body;
 
@@ -106,9 +104,13 @@ exports.verifyTwoFACode = async (req, res) => {
     const found = await MekaShield.findOne({ userId });
 
     if (found && found.code === code) {
-      await MekaShield.deleteOne({ userId }); // Clean up
-      return res.status(200).json({ message: "✅ Code verified" });
-    }
+  await MekaShield.deleteOne({ userId });
+  await db.query(
+    `UPDATE mekacore SET twofa_verified = true WHERE id_two = $1`,
+    [userId]
+  );
+  return res.status(200).json({ message: "✅ Code verified" });
+}
 
     // 2️⃣ Check backup codes (PostgreSQL hashed)
     const result = await db.query(`SELECT backup_codes FROM mekacore WHERE id_two = $1`, [userId]);
@@ -117,11 +119,13 @@ exports.verifyTwoFACode = async (req, res) => {
     for (let hash of storedCodes) {
       const isMatch = await bcrypt.compare(code, hash);
       if (isMatch) {
-        // Remove used backup code
-        const newCodes = storedCodes.filter(c => c !== hash);
-        await db.query(`UPDATE mekacore SET backup_codes = $1 WHERE id_two = $2`, [newCodes, userId]);
-        return res.status(200).json({ message: "✅ Backup code accepted" });
-      }
+  const newCodes = storedCodes.filter(c => c !== hash);
+  await db.query(
+    `UPDATE mekacore SET backup_codes = $1, twofa_verified = true WHERE id_two = $2`,
+    [newCodes, userId]
+  );
+  return res.status(200).json({ message: "✅ Backup code accepted" });
+}
     }
 
     return res.status(401).json({ message: "❌ Invalid or expired code" });
