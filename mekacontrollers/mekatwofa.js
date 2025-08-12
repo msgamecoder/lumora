@@ -1,4 +1,5 @@
 //mekacontrollers/mekatwofa.js
+// mekacontrollers/mekatwofa.js
 const bcrypt = require('bcryptjs');
 const db = require('../mekaconfig/mekadb');
 const MekaShield = require('../mekamodels/mekashield'); // reuse
@@ -21,7 +22,7 @@ function generateBackupCodes(count = 8) {
 }
 
 exports.initTwoFA = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.id; // id_two from auth middleware
 
   try {
     const checkUser = await db.query('SELECT twofa_enabled FROM mekacore WHERE id_two = $1', [userId]);
@@ -53,19 +54,29 @@ exports.initTwoFA = async (req, res) => {
 };
 
 exports.sendTwoFACode = async (req, res) => {
-  const { internalId, email, username } = req.body;
-
-  if (!internalId || !email || !username) {
-    return res.status(400).json({ message: 'Missing required data' });
-  }
-
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-
   try {
-    await MekaShield.deleteMany({ userId: internalId }); // remove any existing codes
+    // Pull user details directly from token/session
+    const userId = req.user.id; // id_two
+    const userQuery = await db.query(
+      'SELECT email, username FROM mekacore WHERE id_two = $1',
+      [userId]
+    );
+
+    if (userQuery.rows.length === 0) {
+      return res.status(404).json({ message: '❌ User not found' });
+    }
+
+    const { email, username } = userQuery.rows[0];
+    if (!email || !username) {
+      return res.status(400).json({ message: '❌ Missing user email or username' });
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await MekaShield.deleteMany({ userId }); // remove any existing codes
 
     await MekaShield.create({
-      userId: internalId,
+      userId,
       code,
       expiresAt: new Date(Date.now() + 20 * 60 * 1000)
     });
@@ -81,23 +92,24 @@ exports.sendTwoFACode = async (req, res) => {
 };
 
 exports.verifyTwoFACode = async (req, res) => {
-  const { internalId, code } = req.body;
+  const userId = req.user.id; // id_two
+  const { code } = req.body;
 
-  if (!internalId || !code) {
-    return res.status(400).json({ message: 'Missing user ID or code' });
+  if (!code) {
+    return res.status(400).json({ message: 'Missing verification code' });
   }
 
   try {
     // 1️⃣ Check temporary email code (MongoDB)
-    const found = await MekaShield.findOne({ userId: internalId });
+    const found = await MekaShield.findOne({ userId });
 
     if (found && found.code === code) {
-      await MekaShield.deleteOne({ userId: internalId }); // Clean up
+      await MekaShield.deleteOne({ userId }); // Clean up
       return res.status(200).json({ message: "✅ Code verified" });
     }
 
     // 2️⃣ Check backup codes (PostgreSQL hashed)
-    const result = await db.query(`SELECT backup_codes FROM mekacore WHERE id_two = $1`, [internalId]);
+    const result = await db.query(`SELECT backup_codes FROM mekacore WHERE id_two = $1`, [userId]);
     const storedCodes = result.rows[0]?.backup_codes || [];
 
     for (let hash of storedCodes) {
@@ -105,7 +117,7 @@ exports.verifyTwoFACode = async (req, res) => {
       if (isMatch) {
         // Remove used backup code
         const newCodes = storedCodes.filter(c => c !== hash);
-        await db.query(`UPDATE mekacore SET backup_codes = $1 WHERE id_two = $2`, [newCodes, internalId]);
+        await db.query(`UPDATE mekacore SET backup_codes = $1 WHERE id_two = $2`, [newCodes, userId]);
         return res.status(200).json({ message: "✅ Backup code accepted" });
       }
     }
@@ -126,7 +138,7 @@ exports.regenerateBackupCodes = async (req, res) => {
     const hashedCodes = [];
 
     for (let i = 0; i < 8; i++) {
-      const rawCode = Math.random().toString(36).slice(2, 10).toUpperCase(); // Example: 8-char code
+      const rawCode = Math.random().toString(36).slice(2, 10).toUpperCase();
       const hash = await bcrypt.hash(rawCode, 10);
       newCodes.push(rawCode);
       hashedCodes.push(hash);
@@ -139,7 +151,7 @@ exports.regenerateBackupCodes = async (req, res) => {
 
     return res.json({
       message: "✅ Backup codes regenerated",
-      codes: newCodes // frontend will save this locally
+      codes: newCodes
     });
 
   } catch (err) {
