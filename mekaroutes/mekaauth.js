@@ -148,7 +148,7 @@ router.post('/meka/delete-session', verifyToken, deleteSingleSession);
 // NOTE: sendTwoFACode now supports actions: enable|disable|setpin|addrecovery|changerecovery
 // For add/change recovery, pass { action, recoveryEmail }
 router.post('/meka/send-2fa-code', verifyToken, sendTwoFACode);
-router.get('/meka/get-2fa-status', getTwoFAStatus);
+router.get('/meka/get-2fa-status', verifyToken, getTwoFAStatus);
 // Verify received code and execute action
 router.post('/meka/verify-2fa-code', verifyToken, verifyTwoFACode);
 
@@ -201,3 +201,4 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
+
