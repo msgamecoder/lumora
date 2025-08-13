@@ -1,4 +1,4 @@
-// mekamiddleware/rateLimit2fa.js
+// mekamiddleware/mekarateLimit2fa.js
 const rateMap = new Map();
 
 // limit: { attempts, firstAttempt }
@@ -14,7 +14,11 @@ const sensitivePaths = [
   '/meka/verify-pin',
   '/meka/login',
   '/meka/forgot',
-  '/meka/reset'
+  '/meka/reset',
+  '/meka/recover',
+  '/meka/check-phone',
+  '/meka/check-email',
+  '/meka/confirm-update'
 ];
 
 function rateLimit2FA(req, res, next) {
@@ -59,5 +63,4 @@ function rateLimit2FA(req, res, next) {
     res.status(500).json({ ok: false, message: "Rate limiter failed" });
   }
 }
-
 module.exports = rateLimit2FA;
