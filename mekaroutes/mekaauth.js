@@ -200,6 +200,31 @@ router.post('/meka/save-fcm', async (req, res) => {
   }
 });
 
+router.get('/meka/get-2fa-statuss', verifyToken, async (req, res) => {
+  try {
+    // Fetch the logged-in user
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Return the 2FA status (true/false)
+    res.json({
+      success: true,
+      enabled: !!user.twoFAEnabled
+    });
+
+  } catch (err) {
+    console.error('Error getting 2FA status:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while checking 2FA status'
+    });
+  }
+});
+
 module.exports = router;
+
 
 
