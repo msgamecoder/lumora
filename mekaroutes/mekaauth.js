@@ -58,11 +58,11 @@ const verifyToken = require('../mekamiddleware/mekaauth');
 
 // ⬇️ 2FA FLOW
 const {
-  initTwoFA,
   sendTwoFACode,
   verifyTwoFACode,
-  regenerateBackupCodes
+  verifyPin
 } = require('../mekacontrollers/mekatwofa');
+
 const { verifyLogin2FA } = require('../mekacontrollers/verifyLogin2FA');
 
 // ⬇️ ACCOUNT SETTINGS (EXTRA)
@@ -141,12 +141,15 @@ router.post('/meka/delete-session', verifyToken, deleteSingleSession);
 // ===============================
 // 🔐 TWO-FACTOR AUTH (2FA)
 // ===============================
+// NOTE: sendTwoFACode now supports actions: enable|disable|setpin|addrecovery|changerecovery
+// For add/change recovery, pass { action, recoveryEmail }
 router.post('/meka/send-2fa-code', verifyToken, sendTwoFACode);
-router.post('/meka/init-2fa', verifyToken, initTwoFA);
-router.post('/meka/verify-2fa-code', verifyToken, verifyTwoFACode);
-router.post('/meka/regenerate-backup-codes', verifyToken, regenerateBackupCodes);
-router.post('/meka/verify-login-2fa', verifyToken, verifyLogin2FA);
 
+// Verify received code and execute action
+router.post('/meka/verify-2fa-code', verifyToken, verifyTwoFACode);
+
+// Verify PIN for sensitive actions (after 2FA is enabled)
+router.post('/meka/verify-pin', verifyToken, verifyPin);
 
 // ===============================
 // ⚙️ ADVANCED ACCOUNT SETTINGS
@@ -194,6 +197,7 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 
