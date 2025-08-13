@@ -55,6 +55,7 @@ const { sendPushNotification } = require('../mekacontrollers/mekafcm');
 
 // ⬇️ MIDDLEWARE
 const verifyToken = require('../mekamiddleware/mekaauth');
+const rateLimit2FA = require('../mekamiddleware/mekarateLimit2fa');
 
 // ⬇️ 2FA FLOW
 const {
@@ -81,6 +82,8 @@ const {
 // ⬇️ FEEDBACK
 const { submitFeedback } = require('../mekacontrollers/mekafeedback');
 
+// ✅ This now only limits sensitive routes automatically
+router.use(rateLimit2FA);
 
 // ===============================
 // ✅ AUTHENTICATION ROUTES
@@ -197,6 +200,7 @@ router.post('/meka/save-fcm', async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 
