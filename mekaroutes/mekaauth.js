@@ -61,8 +61,7 @@ const rateLimit2FA = require('../mekamiddleware/mekarateLimit2fa');
 const {
   sendTwoFACode,
   verifyTwoFACode,
-  verifyPin,
-  getTwoFAStatus
+  verifyPin
 } = require('../mekacontrollers/mekatwofa');
 
 const { verifyLogin2FA } = require('../mekacontrollers/verifyLogin2FA');
@@ -148,7 +147,6 @@ router.post('/meka/delete-session', verifyToken, deleteSingleSession);
 // NOTE: sendTwoFACode now supports actions: enable|disable|setpin|addrecovery|changerecovery
 // For add/change recovery, pass { action, recoveryEmail }
 router.post('/meka/send-2fa-code', verifyToken, sendTwoFACode);
-router.post('/meka/get-2fa-status', verifyToken, getTwoFAStatus);
 // Verify received code and execute action
 router.post('/meka/verify-2fa-code', verifyToken, verifyTwoFACode);
 
@@ -200,31 +198,33 @@ router.post('/meka/save-fcm', async (req, res) => {
   }
 });
 
-router.get('/meka/get-2fa-statuss', verifyToken, async (req, res) => {
+router.get('/meka/get-2fa-status', verifyToken, async (req, res) => {
   try {
-    // Fetch the logged-in user
-    const user = await User.findById(req.user.id);
+    const result = await pool.query(
+      'SELECT twofa_enabled FROM mekacore WHERE id_two = $1',
+      [req.user.id]
+    );
 
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+    if (result.rows.length === 0) {
+      return res.status(404).json({ ok: false, message: 'User not found' });
     }
 
-    // Return the 2FA status (true/false)
     res.json({
-      success: true,
-      enabled: !!user.twoFAEnabled
+      ok: true,
+      enabled: !!result.rows[0].twofa_enabled
     });
 
   } catch (err) {
     console.error('Error getting 2FA status:', err);
     res.status(500).json({
-      success: false,
+      ok: false,
       message: 'Server error while checking 2FA status'
     });
   }
 });
 
 module.exports = router;
+
 
 
 
