@@ -307,33 +307,3 @@ exports.verifyPin = async (req, res) => {
     res.status(500).json({ message: '🔥 PIN verification failed' });
   }
 };
-
-// Get 2FA status (enabled, recovery email set)
-exports.getTwoFAStatus = async (req, res) => {
-  try {
-    const userId = req.user.id;
-
-    const result = await db.query(
-      `SELECT twofa_enabled, twofa_recovery_email 
-         FROM mekacore 
-        WHERE id_two = $1`,
-      [userId]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: '❌ User not found' });
-    }
-
-    const row = result.rows[0];
-    res.json({
-      ok: true,
-      data: {
-        enabled: row.twofa_enabled === true,
-        hasRecovery: !!row.twofa_recovery_email
-      }
-    });
-  } catch (err) {
-    console.error('❌ getTwoFAStatus error:', err);
-    res.status(500).json({ message: '🔥 Could not fetch 2FA status' });
-  }
-};
