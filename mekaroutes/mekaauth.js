@@ -201,7 +201,7 @@ router.post('/meka/save-fcm', async (req, res) => {
 router.get('/meka/get-2fa-status', verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT twofa_enabled FROM mekacore WHERE id_two = $1',
+      'SELECT twofa_enabled, twofa_recovery_email FROM mekacore WHERE id_two = $1',
       [req.user.id]
     );
 
@@ -211,7 +211,8 @@ router.get('/meka/get-2fa-status', verifyToken, async (req, res) => {
 
     res.json({
       ok: true,
-      enabled: !!result.rows[0].twofa_enabled
+      enabled: !!result.rows[0].twofa_enabled,
+      recoveryEmail: result.rows[0].twofa_recovery_email || null
     });
 
   } catch (err) {
@@ -224,6 +225,7 @@ router.get('/meka/get-2fa-status', verifyToken, async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 
