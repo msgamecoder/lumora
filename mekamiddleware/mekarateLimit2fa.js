@@ -1,13 +1,12 @@
 // mekamiddleware/mekarateLimit2fa.js
 const rateMap = new Map();
 
-// limit: { attempts, firstAttempt }
 const limitConfig = {
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 5 // max requests in that window
+  max: 5,                   // max requests before limit message
+  silentBlockAfter: 15       // total attempts before silent block
 };
 
-// List of sensitive endpoints that should be rate limited
 const sensitivePaths = [
   '/meka/send-2fa-code',
   '/meka/verify-2fa-code',
@@ -23,7 +22,6 @@ const sensitivePaths = [
 
 function rateLimit2FA(req, res, next) {
   try {
-    // Skip if not a sensitive path
     if (!sensitivePaths.includes(req.path)) {
       return next();
     }
@@ -38,29 +36,54 @@ function rateLimit2FA(req, res, next) {
 
     const data = rateMap.get(userKey);
 
-    // reset if window passed
+    // Reset window
     if (now - data.firstAttempt > limitConfig.windowMs) {
       rateMap.set(userKey, { attempts: 1, firstAttempt: now });
       return next();
     }
 
-    // still in same window
+    // Too many attempts
     if (data.attempts >= limitConfig.max) {
-      const timeLeft = Math.ceil(
+
+      // If they've gone way beyond → silent block (no message)
+      if (data.attempts >= limitConfig.silentBlockAfter) {
+        return res.status(429).end();
+      }
+
+      const timeLeftSec = Math.ceil(
         (limitConfig.windowMs - (now - data.firstAttempt)) / 1000
       );
+
+      let displayTime;
+      if (timeLeftSec >= 60) {
+        const minutes = Math.ceil(timeLeftSec / 60);
+        displayTime = `${minutes} minute${minutes > 1 ? 's' : ''}`;
+      } else {
+        displayTime = `${timeLeftSec} second${timeLeftSec > 1 ? 's' : ''}`;
+      }
+
+      // Randomize message style
+      const messages = [
+        `Try again in ${displayTime}.`,
+        `Try again in the next ${displayTime}.`,
+        `Limit reached. Wait ${displayTime} before retrying.`
+      ];
+      const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+
       return res.status(429).json({
         ok: false,
-        message: `Too many requests. Try again in ${timeLeft} seconds.`
+        message: randomMessage
       });
     }
 
     data.attempts += 1;
     rateMap.set(userKey, data);
     next();
+
   } catch (err) {
     console.error("Rate limit error:", err);
     res.status(500).json({ ok: false, message: "Rate limiter failed" });
   }
 }
+
 module.exports = rateLimit2FA;
