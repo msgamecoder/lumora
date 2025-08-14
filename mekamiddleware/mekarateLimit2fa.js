@@ -9,7 +9,6 @@ const limitConfig = {
 
 const sensitivePaths = [
   '/meka/send-2fa-code',
-  '/meka/verify-2fa-code',
   '/meka/verify-pin',
   '/meka/login',
   '/meka/forgot',
